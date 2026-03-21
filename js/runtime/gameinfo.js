@@ -890,14 +890,25 @@ class GameInfo extends Emitter {
 
   // 处理主界面触摸
   handleMenuTouch(x, y) {
+    console.log('handleMenuTouch - x:', x, 'y:', y);
+    console.log('startGame area:', this.btnAreas.startGame);
+    console.log('collection area:', this.btnAreas.collection);
+    console.log('leaderboard area:', this.btnAreas.leaderboard);
+    
     if (this.isInArea(x, y, this.btnAreas.startGame)) {
+      console.log('startGame button clicked');
       this.emit('startGame');
     } else if (this.isInArea(x, y, this.btnAreas.collection)) {
+      console.log('collection button clicked');
       this.emit('collection');
     } else if (this.isInArea(x, y, this.btnAreas.leaderboard)) {
+      console.log('leaderboard button clicked');
       this.emit('leaderboard');
     } else if (this.isInArea(x, y, this.btnAreas.settings)) {
+      console.log('settings button clicked');
       this.emit('settings');
+    } else {
+      console.log('No button clicked');
     }
   }
 
