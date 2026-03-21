@@ -22,17 +22,37 @@ if (isWechatGame) {
   
   SCREEN_WIDTH = windowInfo.screenWidth;
   SCREEN_HEIGHT = windowInfo.screenHeight;
+  
+  // 将常量挂载到全局对象
+  GameGlobal.SCREEN_WIDTH = SCREEN_WIDTH;
+  GameGlobal.SCREEN_HEIGHT = SCREEN_HEIGHT;
 } else {
-  // 浏览器环境
-  canvas = document.getElementById('gameCanvas');
-  
-  if (canvas) {
-    canvas.width = 375;
-    canvas.height = 667;
-  }
-  
+  // 浏览器环境 - 延迟初始化，等待DOM加载完成
+  // 设置默认值
   SCREEN_WIDTH = 375;
   SCREEN_HEIGHT = 667;
+  
+  // 将常量挂载到全局对象
+  if (typeof window !== 'undefined') {
+    window.SCREEN_WIDTH = SCREEN_WIDTH;
+    window.SCREEN_HEIGHT = SCREEN_HEIGHT;
+  }
+  
+  // 在DOM加载完成后初始化canvas
+  if (typeof window !== 'undefined') {
+    window.addEventListener('DOMContentLoaded', function() {
+      canvas = document.getElementById('gameCanvas');
+      
+      if (canvas) {
+        canvas.width = SCREEN_WIDTH;
+        canvas.height = SCREEN_HEIGHT;
+        window.canvas = canvas;
+        console.log('Canvas initialized successfully');
+      } else {
+        console.error('Canvas element not found');
+      }
+    });
+  }
 }
 
 // 将常量挂载到全局对象
@@ -53,8 +73,4 @@ if (typeof window !== 'undefined') {
 
 if (typeof GameGlobal !== 'undefined') {
   GameGlobal.canvas = canvas;
-  // 在微信小游戏环境中，将canvas变量也挂载到全局作用域
-  if (isWechatGame) {
-    canvas = GameGlobal.canvas;
-  }
 }

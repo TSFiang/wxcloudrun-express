@@ -68,40 +68,59 @@
     
     <script>
         // 等待所有脚本加载完成后初始化游戏
-        window.onload = function() {
-            try {
-                // 隐藏加载提示
-                document.getElementById('loading').style.display = 'none';
-                // 显示canvas
-                document.getElementById('gameCanvas').style.display = 'block';
-                
-                // 检查所有必要的类是否已加载
-                if (typeof Main === 'undefined') {
-                    throw new Error('Main class not found');
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                try {
+                    console.log('Starting game initialization...');
+                    
+                    // 隐藏加载提示
+                    document.getElementById('loading').style.display = 'none';
+                    // 显示canvas
+                    document.getElementById('gameCanvas').style.display = 'block';
+                    
+                    // 检查所有必要的类是否已加载
+                    if (typeof Main === 'undefined') {
+                        throw new Error('Main class not found');
+                    }
+                    if (typeof DataBus === 'undefined') {
+                        throw new Error('DataBus class not found');
+                    }
+                    if (typeof GameInfo === 'undefined') {
+                        throw new Error('GameInfo class not found');
+                    }
+                    if (typeof Music === 'undefined') {
+                        throw new Error('Music class not found');
+                    }
+                    
+                    // 检查canvas是否可用
+                    if (typeof canvas === 'undefined' || !canvas) {
+                        console.log('Canvas not initialized, initializing now...');
+                        // 手动初始化canvas
+                        canvas = document.getElementById('gameCanvas');
+                        if (canvas) {
+                            canvas.width = 375;
+                            canvas.height = 667;
+                            window.canvas = canvas;
+                            console.log('Canvas initialized successfully');
+                        } else {
+                            throw new Error('Canvas element not found');
+                        }
+                    }
+                    
+                    // 初始化游戏
+                    console.log('Initializing game...');
+                    new Main();
+                    console.log('Game initialized successfully');
+                } catch (error) {
+                    console.error('Failed to initialize game:', error);
+                    document.getElementById('loading').style.display = 'none';
+                    var errorDiv = document.createElement('div');
+                    errorDiv.className = 'error';
+                    errorDiv.innerHTML = '游戏初始化失败<br>' + error.message + '<br>请刷新页面重试';
+                    document.body.appendChild(errorDiv);
                 }
-                if (typeof DataBus === 'undefined') {
-                    throw new Error('DataBus class not found');
-                }
-                if (typeof GameInfo === 'undefined') {
-                    throw new Error('GameInfo class not found');
-                }
-                if (typeof Music === 'undefined') {
-                    throw new Error('Music class not found');
-                }
-                
-                // 初始化游戏
-                console.log('Initializing game...');
-                new Main();
-                console.log('Game initialized successfully');
-            } catch (error) {
-                console.error('Failed to initialize game:', error);
-                document.getElementById('loading').style.display = 'none';
-                var errorDiv = document.createElement('div');
-                errorDiv.className = 'error';
-                errorDiv.innerHTML = '游戏初始化失败<br>' + error.message + '<br>请刷新页面重试';
-                document.body.appendChild(errorDiv);
-            }
-        };
+            }, 100); // 延迟100ms确保所有脚本都已完全加载
+        });
     </script>
 </body>
 </html>
