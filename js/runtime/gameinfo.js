@@ -48,30 +48,26 @@ class GameInfo extends Emitter {
       this.e = {};
     }
 
-    // 引用全局变量（从render.js中定义）
-    const SCREEN_WIDTH = window.SCREEN_WIDTH || 375;
-    const SCREEN_HEIGHT = window.SCREEN_HEIGHT || 667;
-
-    // 按钮区域
+    // 按钮区域 - 使用固定的设计稿尺寸
     this.btnAreas = {
       // 主界面按钮
       startGame: {
-        startX: (window.SCREEN_WIDTH || 375) / 2 - 100,
-        startY: (window.SCREEN_HEIGHT || 667) / 2 - 60,
-        endX: (window.SCREEN_WIDTH || 375) / 2 + 100,
-        endY: (window.SCREEN_HEIGHT || 667) / 2 - 10,
+        startX: 87.5, // (375 / 2 - 100)
+        startY: 273.5, // (667 / 2 - 60)
+        endX: 287.5, // (375 / 2 + 100)
+        endY: 323.5, // (667 / 2 - 10)
       },
       collection: {
-        startX: (window.SCREEN_WIDTH || 375) / 2 - 100,
-        startY: (window.SCREEN_HEIGHT || 667) / 2 + 20,
-        endX: (window.SCREEN_WIDTH || 375) / 2 + 100,
-        endY: (window.SCREEN_HEIGHT || 667) / 2 + 70,
+        startX: 87.5,
+        startY: 353.5, // (667 / 2 + 20)
+        endX: 287.5,
+        endY: 403.5, // (667 / 2 + 70)
       },
       leaderboard: {
-        startX: (window.SCREEN_WIDTH || 375) / 2 - 100,
-        startY: (window.SCREEN_HEIGHT || 667) / 2 + 100,
-        endX: (window.SCREEN_WIDTH || 375) / 2 + 100,
-        endY: (window.SCREEN_HEIGHT || 667) / 2 + 150,
+        startX: 87.5,
+        startY: 433.5, // (667 / 2 + 100)
+        endX: 287.5,
+        endY: 483.5, // (667 / 2 + 150)
       },
       settings: {
         startX: 20,
@@ -81,22 +77,22 @@ class GameInfo extends Emitter {
       },
       // 游戏结束按钮
       restart: {
-        startX: (window.SCREEN_WIDTH || 375) / 2 - 80,
-        startY: (window.SCREEN_HEIGHT || 667) / 2 + 20,
-        endX: (window.SCREEN_WIDTH || 375) / 2 + 80,
-        endY: (window.SCREEN_HEIGHT || 667) / 2 + 60,
+        startX: 107.5, // (375 / 2 - 80)
+        startY: 353.5, // (667 / 2 + 20)
+        endX: 267.5, // (375 / 2 + 80)
+        endY: 393.5, // (667 / 2 + 60)
       },
       share: {
-        startX: (window.SCREEN_WIDTH || 375) / 2 - 80,
-        startY: (window.SCREEN_HEIGHT || 667) / 2 + 80,
-        endX: (window.SCREEN_WIDTH || 375) / 2 + 80,
-        endY: (window.SCREEN_HEIGHT || 667) / 2 + 120,
+        startX: 107.5,
+        startY: 413.5, // (667 / 2 + 80)
+        endX: 267.5,
+        endY: 453.5, // (667 / 2 + 120)
       },
       watchAd: {
-        startX: (window.SCREEN_WIDTH || 375) / 2 - 80,
-        startY: (window.SCREEN_HEIGHT || 667) / 2 + 140,
-        endX: (window.SCREEN_WIDTH || 375) / 2 + 80,
-        endY: (window.SCREEN_HEIGHT || 667) / 2 + 180,
+        startX: 107.5,
+        startY: 473.5, // (667 / 2 + 140)
+        endX: 267.5,
+        endY: 513.5, // (667 / 2 + 180)
       },
       backToMenu: {
         startX: 20,
@@ -107,33 +103,33 @@ class GameInfo extends Emitter {
       // 道具按钮
       shield: {
         startX: 40,
-        startY: SCREEN_HEIGHT - 160,
+        startY: 507, // (667 - 160)
         endX: 80,
-        endY: SCREEN_HEIGHT - 120,
+        endY: 547, // (667 - 120)
       },
       rainbow: {
         startX: 100,
-        startY: SCREEN_HEIGHT - 160,
+        startY: 507,
         endX: 140,
-        endY: SCREEN_HEIGHT - 120,
+        endY: 547,
       },
       doubleScore: {
         startX: 160,
-        startY: SCREEN_HEIGHT - 160,
+        startY: 507,
         endX: 200,
-        endY: SCREEN_HEIGHT - 120,
+        endY: 547,
       },
       extraBean: {
         startX: 220,
-        startY: SCREEN_HEIGHT - 160,
+        startY: 507,
         endX: 260,
-        endY: SCREEN_HEIGHT - 120,
+        endY: 547,
       },
       // 暂停按钮
       pause: {
-        startX: SCREEN_WIDTH - 60,
+        startX: 315, // (375 - 60)
         startY: 40,
-        endX: SCREEN_WIDTH - 20,
+        endX: 355, // (375 - 20)
         endY: 80,
       },
     };
@@ -683,7 +679,14 @@ class GameInfo extends Emitter {
 
   // 处理触摸开始
   touchStartHandler(event) {
-    const { clientX, clientY } = event.touches[0];
+    let { clientX, clientY } = event.touches[0];
+    
+    // 转换坐标到canvas内部坐标
+    if (window.canvasScale) {
+      clientX = clientX / window.canvasScale;
+      clientY = clientY / window.canvasScale;
+    }
+    
     const gameState = GameGlobal.databus.gameState;
 
     // 处理教程触摸
@@ -773,8 +776,15 @@ class GameInfo extends Emitter {
   // 处理鼠标按下
   mouseDownHandler(event) {
     const rect = event.target.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
+    
+    // 转换坐标到canvas内部坐标
+    if (window.canvasScale) {
+      x = x / window.canvasScale;
+      y = y / window.canvasScale;
+    }
+    
     this.touchStartHandler({ touches: [{ clientX: x, clientY: y }] });
   }
   

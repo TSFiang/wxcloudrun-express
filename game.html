@@ -2,11 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>拼豆跳跳消</title>
     <style>
         * {
@@ -21,8 +17,6 @@
             overflow: hidden;
             background-color: #f0f4f8;
             font-family: Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
         
         #gameContainer {
@@ -38,9 +32,7 @@
         
         canvas {
             display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
+            background-color: #fff;
         }
         
         .loading {
@@ -128,18 +120,22 @@
                         // 手动初始化canvas
                         canvas = document.getElementById('gameCanvas');
                         if (canvas) {
-                            var dpr = window.devicePixelRatio || 1;
-                            var actualWidth = window.innerWidth;
-                            var actualHeight = window.innerHeight;
+                            canvas.width = 375;
+                            canvas.height = 667;
                             
-                            canvas.style.width = actualWidth + 'px';
-                            canvas.style.height = actualHeight + 'px';
-                            canvas.width = actualWidth * dpr;
-                            canvas.height = actualHeight * dpr;
+                            // 设置CSS样式，保持宽高比
+                            var scaleX = window.innerWidth / 375;
+                            var scaleY = window.innerHeight / 667;
+                            var scale = Math.min(scaleX, scaleY);
+                            
+                            canvas.style.width = (375 * scale) + 'px';
+                            canvas.style.height = (667 * scale) + 'px';
+                            canvas.style.position = 'absolute';
+                            canvas.style.left = ((window.innerWidth - 375 * scale) / 2) + 'px';
+                            canvas.style.top = ((window.innerHeight - 667 * scale) / 2) + 'px';
                             
                             window.canvas = canvas;
-                            window.SCREEN_WIDTH = actualWidth;
-                            window.SCREEN_HEIGHT = actualHeight;
+                            window.canvasScale = scale;
                             
                             console.log('Canvas initialized successfully');
                         } else {
@@ -165,19 +161,18 @@
         // 监听窗口大小变化
         window.addEventListener('resize', function() {
             if (window.canvas) {
-                var dpr = window.devicePixelRatio || 1;
-                var actualWidth = window.innerWidth;
-                var actualHeight = window.innerHeight;
+                var scaleX = window.innerWidth / 375;
+                var scaleY = window.innerHeight / 667;
+                var scale = Math.min(scaleX, scaleY);
                 
-                window.canvas.style.width = actualWidth + 'px';
-                window.canvas.style.height = actualHeight + 'px';
-                window.canvas.width = actualWidth * dpr;
-                window.canvas.height = actualHeight * dpr;
+                window.canvas.style.width = (375 * scale) + 'px';
+                window.canvas.style.height = (667 * scale) + 'px';
+                window.canvas.style.left = ((window.innerWidth - 375 * scale) / 2) + 'px';
+                window.canvas.style.top = ((window.innerHeight - 667 * scale) / 2) + 'px';
                 
-                window.SCREEN_WIDTH = actualWidth;
-                window.SCREEN_HEIGHT = actualHeight;
+                window.canvasScale = scale;
                 
-                console.log('Window resized to:', actualWidth, 'x', actualHeight);
+                console.log('Window resized, scale:', scale);
             }
         });
     </script>
