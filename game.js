@@ -1,16 +1,29 @@
 // 微信小游戏环境
 if (typeof wx !== 'undefined' && typeof wx.createCanvas !== 'undefined') {
-  // 确保GameGlobal存在
-  if (typeof GameGlobal === 'undefined') {
-    GameGlobal = {};
-  }
-  
-  // 直接创建Main实例
-  // 假设所有脚本已经通过微信小游戏的构建系统加载
-  if (typeof Main !== 'undefined') {
-    new Main();
-  } else {
-    console.error('Main class not found');
+  // 微信小游戏环境使用require加载模块
+  try {
+    // 加载必要的模块
+    require('./js/libs/tinyemitter.js');
+    require('./js/base/pool.js');
+    require('./js/render.js');
+    require('./js/databus.js');
+    require('./js/runtime/music.js');
+    require('./js/runtime/gameinfo.js');
+    require('./js/main.js');
+    
+    // 确保GameGlobal存在
+    if (typeof GameGlobal === 'undefined') {
+      GameGlobal = {};
+    }
+    
+    // 创建Main实例
+    if (typeof Main !== 'undefined') {
+      new Main();
+    } else {
+      console.error('Main class not found');
+    }
+  } catch (error) {
+    console.error('Error loading modules:', error);
   }
 } else {
   // 浏览器环境
