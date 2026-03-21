@@ -2,22 +2,47 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
     <title>拼豆跳跳消</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
             background-color: #f0f4f8;
+            font-family: Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        #gameContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
         }
+        
         canvas {
             display: block;
-            border: 1px solid #ccc;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
+        
         .loading {
             position: absolute;
             top: 50%;
@@ -26,7 +51,9 @@
             font-family: Arial, sans-serif;
             font-size: 18px;
             color: #333;
+            z-index: 100;
         }
+        
         .error {
             position: absolute;
             top: 50%;
@@ -37,12 +64,15 @@
             color: #f00;
             text-align: center;
             max-width: 80%;
+            z-index: 100;
         }
     </style>
 </head>
 <body>
-    <div class="loading" id="loading">加载中...</div>
-    <canvas id="gameCanvas" width="375" height="667" style="display: none;"></canvas>
+    <div id="gameContainer">
+        <div class="loading" id="loading">加载中...</div>
+        <canvas id="gameCanvas" style="display: none;"></canvas>
+    </div>
     
     <script>
         // 错误处理
@@ -98,9 +128,19 @@
                         // 手动初始化canvas
                         canvas = document.getElementById('gameCanvas');
                         if (canvas) {
-                            canvas.width = 375;
-                            canvas.height = 667;
+                            var dpr = window.devicePixelRatio || 1;
+                            var actualWidth = window.innerWidth;
+                            var actualHeight = window.innerHeight;
+                            
+                            canvas.style.width = actualWidth + 'px';
+                            canvas.style.height = actualHeight + 'px';
+                            canvas.width = actualWidth * dpr;
+                            canvas.height = actualHeight * dpr;
+                            
                             window.canvas = canvas;
+                            window.SCREEN_WIDTH = actualWidth;
+                            window.SCREEN_HEIGHT = actualHeight;
+                            
                             console.log('Canvas initialized successfully');
                         } else {
                             throw new Error('Canvas element not found');
@@ -120,6 +160,25 @@
                     document.body.appendChild(errorDiv);
                 }
             }, 100); // 延迟100ms确保所有脚本都已完全加载
+        });
+        
+        // 监听窗口大小变化
+        window.addEventListener('resize', function() {
+            if (window.canvas) {
+                var dpr = window.devicePixelRatio || 1;
+                var actualWidth = window.innerWidth;
+                var actualHeight = window.innerHeight;
+                
+                window.canvas.style.width = actualWidth + 'px';
+                window.canvas.style.height = actualHeight + 'px';
+                window.canvas.width = actualWidth * dpr;
+                window.canvas.height = actualHeight * dpr;
+                
+                window.SCREEN_WIDTH = actualWidth;
+                window.SCREEN_HEIGHT = actualHeight;
+                
+                console.log('Window resized to:', actualWidth, 'x', actualHeight);
+            }
         });
     </script>
 </body>
