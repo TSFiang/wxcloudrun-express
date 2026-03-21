@@ -704,10 +704,14 @@ class GameInfo extends Emitter {
   touchStartHandler(event) {
     let { clientX, clientY } = event.touches[0];
     
+    console.log('Raw touch - clientX:', clientX, 'clientY:', clientY);
+    console.log('Canvas scale:', window.canvasScale);
+    
     // 转换坐标到canvas内部坐标
     if (window.canvasScale) {
       clientX = clientX / window.canvasScale;
       clientY = clientY / window.canvasScale;
+      console.log('Converted touch - clientX:', clientX, 'clientY:', clientY);
     }
     
     const gameState = GameGlobal.databus.gameState;
