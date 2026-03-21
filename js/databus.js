@@ -320,6 +320,11 @@ class DataBus {
 
   // 更新玩家
   updatePlayer() {
+    // 如果倒计时还没结束，不更新玩家位置
+    if (this.gameStartTime && Date.now() < this.gameStartTime) {
+      return;
+    }
+    
     let isOnPlatform = false;
     
     // 检测与平台的碰撞
