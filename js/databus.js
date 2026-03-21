@@ -326,14 +326,23 @@ class DataBus {
     }
     
     let isOnPlatform = false;
+    let currentPlatformObj = null;
     
     // 检测与平台的碰撞
     for (const platform of this.platforms) {
-      if (this.player.x < platform.x + platform.size &&
-          this.player.x + this.player.size > platform.x &&
-          this.player.y + this.player.size >= platform.y &&
-          this.player.y + this.player.size <= platform.y + 10) {
+      // 检查玩家是否在平台的水平范围内
+      const playerCenterX = this.player.x + this.player.size / 2;
+      const isInHorizontalRange = playerCenterX >= platform.x && 
+                                    playerCenterX <= platform.x + platform.size;
+      
+      // 检查玩家是否在平台的垂直范围内（落在平台上）
+      const playerBottom = this.player.y + this.player.size;
+      const isInVerticalRange = playerBottom >= platform.y && 
+                                 playerBottom <= platform.y + 15;
+      
+      if (isInHorizontalRange && isInVerticalRange) {
         isOnPlatform = true;
+        currentPlatformObj = platform;
         
         if (this.player.isJumping && this.player.velocityY > 0) {
           // 落在平台上
@@ -370,6 +379,12 @@ class DataBus {
         }
         break;
       }
+    }
+    
+    // 如果玩家站在平台上，随平台一起移动
+    if (isOnPlatform && !this.player.isJumping && currentPlatformObj) {
+      // 玩家跟随平台移动
+      this.player.x -= this.platformSpeed;
     }
     
     if (this.player.isJumping) {
