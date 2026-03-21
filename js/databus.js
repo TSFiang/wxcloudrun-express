@@ -244,6 +244,11 @@ class DataBus {
         // 移动平台
         platform.x -= this.platformSpeed;
         
+        // 如果玩家站在这个平台上，同步移动玩家
+        if (!this.player.isJumping && this.player.currentPlatform === platform) {
+          this.player.x -= this.platformSpeed;
+        }
+        
         // 移动平台的额外移动
         if (platform.isMoving) {
           platform.y += platform.moveDirection * 0.5;
@@ -302,7 +307,6 @@ class DataBus {
     
     // 检测与平台的碰撞
     let isOnPlatform = false;
-    let landedPlatform = null;
     
     for (const platform of this.platforms) {
       // 检查玩家是否在平台的水平范围内
@@ -323,7 +327,6 @@ class DataBus {
           this.player.velocityY = 0;
           this.player.velocityX = 0;
           this.player.y = platform.y - this.player.size;
-          landedPlatform = platform;
           
           // 检查是否是新的平台（避免重复加分）
           if (this.player.currentPlatform !== platform) {
@@ -357,12 +360,8 @@ class DataBus {
       }
     }
     
-    // 如果玩家站在平台上，随平台一起移动
-    if (isOnPlatform && !this.player.isJumping) {
-      // 玩家跟随平台移动
-      this.player.x -= this.platformSpeed;
-    } else if (!isOnPlatform && !this.player.isJumping) {
-      // 玩家不在平台上且没有在跳跃，开始掉落
+    // 如果玩家不在平台上且没有在跳跃，开始掉落
+    if (!isOnPlatform && !this.player.isJumping) {
       this.player.isJumping = true;
       this.player.velocityY = 0;
       this.player.velocityX = 0;
