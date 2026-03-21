@@ -155,7 +155,10 @@ class DataBus {
   // 初始化平台
   initPlatforms() {
     this.platforms = [];
-    const startY = window.SCREEN_HEIGHT - 100;
+    // 调整平台初始位置，避免被底部UI遮挡
+    // UI区域：道具栏(507-547)、收集栏(567-617)
+    // 游戏区域：100-500，平台初始位置设在中间偏下
+    const startY = 350; // 从567调整到350，留出足够空间
     
     for (let i = 0; i < 8; i++) {
       const platform = {
@@ -226,8 +229,10 @@ class DataBus {
       moveDirection: Math.random() > 0.5 ? 1 : -1
     };
     
-    // 确保平台在屏幕范围内，并且限制垂直变化幅度
-    platform.y = Math.max(100, Math.min(window.SCREEN_HEIGHT - 150, platform.y));
+    // 确保平台在屏幕范围内，避免被UI遮挡
+    // UI区域：道具栏(507-547)、收集栏(567-617)
+    // 平台安全区域：100-480
+    platform.y = Math.max(100, Math.min(480, platform.y));
     
     this.platforms.push(platform);
   }
@@ -249,11 +254,17 @@ class DataBus {
           this.player.x -= this.platformSpeed;
         }
         
-        // 移动平台的额外移动
+        // 移动平台的额外移动（优化移动范围和速度）
         if (platform.isMoving) {
-          platform.y += platform.moveDirection * 0.5;
-          if (platform.y < 50 || platform.y > window.SCREEN_HEIGHT - 100) {
+          // 降低移动速度，让玩家更容易适应
+          platform.y += platform.moveDirection * 0.3; // 从0.5降到0.3
+          
+          // 限制移动范围在安全区域内（100-480像素）
+          // 避免与UI元素冲突
+          if (platform.y <= 100 || platform.y >= 480) {
             platform.moveDirection *= -1;
+            // 确保平台在安全范围内
+            platform.y = Math.max(100, Math.min(480, platform.y));
           }
         }
       });
