@@ -348,22 +348,7 @@ class GameInfo extends Emitter {
     const databus = GameGlobal.databus;
     
     // 绘制背景图片
-    ctx.drawImage(backgroundImage, 0, 0, (window.375 || 375), (window.667 || 667));
-    
-    // 显示倒计时
-    if (databus.gameStartTime && Date.now() < databus.gameStartTime) {
-      const remainingTime = Math.ceil((databus.gameStartTime - Date.now()) / 1000);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-      ctx.fillRect(0, 0, (window.375 || 375), (window.667 || 667));
-      
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      this.setFont(ctx, 48, '#ffffff');
-      ctx.fillText(remainingTime.toString(), (window.375 || 375) / 2, (window.667 || 667) / 2);
-      
-      this.setFont(ctx, 20, '#ffffff');
-      ctx.fillText('准备开始...', (window.375 || 375) / 2, (window.667 || 667) / 2 + 40);
-    }
+    ctx.drawImage(backgroundImage, 0, 0, 375, 667);
     
     // 绘制顶部信息栏
     this.renderTopInfo(ctx);
@@ -387,8 +372,23 @@ class GameInfo extends Emitter {
     
     // 绘制暂停按钮
     this.drawButton(ctx, '暂停', this.btnAreas.pause);
+    
+    // 显示倒计时
+    if (databus.gameStartTime && Date.now() < databus.gameStartTime) {
+      const remainingTime = Math.ceil((databus.gameStartTime - Date.now()) / 1000);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(0, 0, 375, 667);
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      this.setFont(ctx, 48, '#ffffff');
+      ctx.fillText(remainingTime.toString(), 375 / 2, 667 / 2);
+      
+      this.setFont(ctx, 20, '#ffffff');
+      ctx.fillText('准备开始...', 375 / 2, 667 / 2 + 40);
+    }
   }
-
+  
   // 渲染顶部信息栏
   renderTopInfo(ctx) {
     const databus = GameGlobal.databus;
@@ -404,7 +404,7 @@ class GameInfo extends Emitter {
     // 绘制拼豆数量
     this.setFont(ctx, 16, '#ffffff');
     ctx.textAlign = 'center';
-    ctx.fillText(`拼豆: ${databus.beanPieces}`, (window.375 || 375) / 2, 40);
+    ctx.fillText(`拼豆: ${databus.beanPieces}`, 375 / 2, 40);
   }
 
   // 渲染平台
