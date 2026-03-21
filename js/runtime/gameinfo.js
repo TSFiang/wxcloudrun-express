@@ -405,6 +405,14 @@ class GameInfo extends Emitter {
     this.setFont(ctx, 16, '#ffffff');
     ctx.textAlign = 'center';
     ctx.fillText(`拼豆: ${databus.beanPieces}`, 375 / 2, 40);
+    
+    // 绘制双倍分数倒计时
+    if (databus.doubleScoreActive && Date.now() < databus.doubleScoreEndTime) {
+      const remainingTime = Math.ceil((databus.doubleScoreEndTime - Date.now()) / 1000);
+      this.setFont(ctx, 18, '#FFD700');
+      ctx.textAlign = 'right';
+      ctx.fillText(`2x ${remainingTime}s`, 375 - 20, 30);
+    }
   }
 
   // 渲染平台
@@ -681,6 +689,35 @@ class GameInfo extends Emitter {
     
     // 确保Canvas支持透明度
     ctx.globalCompositeOperation = 'source-over';
+    
+    // 绘制护盾光环效果
+    if (databus.hasShield) {
+      ctx.beginPath();
+      ctx.arc(
+        drawX + scaledWidth / 2, 
+        drawY + scaledHeight / 2, 
+        Math.max(scaledWidth, scaledHeight) / 2 + 10,
+        0, 
+        Math.PI * 2
+      );
+      ctx.strokeStyle = 'rgba(100, 200, 255, 0.8)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      
+      // 添加脉冲效果
+      const pulse = 0.5 + Math.sin(Date.now() / 200) * 0.3;
+      ctx.beginPath();
+      ctx.arc(
+        drawX + scaledWidth / 2, 
+        drawY + scaledHeight / 2, 
+        Math.max(scaledWidth, scaledHeight) / 2 + 15,
+        0, 
+        Math.PI * 2
+      );
+      ctx.strokeStyle = `rgba(100, 200, 255, ${pulse})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
     
     // 绘制玩家精灵
     ctx.drawImage(

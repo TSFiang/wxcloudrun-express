@@ -137,12 +137,12 @@ class DataBus {
     this.basePlatformSize = 80; // 增大平台
     this.collectedBeans = [];
     this.beanPieces = 0;
-    this.items = {
-      shield: 0,
-      rainbow: 0,
-      doubleScore: 0,
-      extraBean: 0
-    };
+    // 道具不清空，保留玩家积累的道具
+    // 测试阶段：如果没有道具，给初始道具（每个3个）
+    if (this.items.shield === 0 && this.items.rainbow === 0 && 
+        this.items.doubleScore === 0 && this.items.extraBean === 0) {
+      this.items = { shield: 3, rainbow: 3, doubleScore: 3, extraBean: 3 };
+    }
     this.animations = [];
     this.gameState = 'menu';
     this.isPaused = false; // 重置暂停状态
@@ -849,11 +849,18 @@ class DataBus {
         
         this.collectedBeans = newCollected;
         
-        // 增加分数
-        this.score += 10;
+        // 增加分数（检查双倍分数）
+        if (this.doubleScoreActive && Date.now() < this.doubleScoreEndTime) {
+          this.score += 20;
+        } else {
+          this.score += 10;
+        }
         
         // 获得拼豆碎片
         this.beanPieces++;
+        
+        // 消除成功，奖励一个道具
+        this.giveRandomItem();
         
         // 检查是否解锁拼豆图鉴
         this.checkBeanCollection();
@@ -865,9 +872,11 @@ class DataBus {
       }
     }
     
-    // 当收集栏中满足任意三个颜色时，随机赠送一个道具
-    if (this.collectedBeans.length === 3) {
+    // 当收集栏中有3个不同颜色时，也赠送一个道具
+    const uniqueColors = Object.keys(colorCount);
+    if (uniqueColors.length >= 3 && this.collectedBeans.length >= 3) {
       this.giveRandomItem();
+      console.log('收集3个不同颜色，获得道具！');
     }
     
     return false;
