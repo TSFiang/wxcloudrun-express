@@ -241,9 +241,6 @@ class DataBus {
     if (this.isGameStarted && Date.now() >= this.gameStartTime) {
       // 移动平台
       this.platforms.forEach(platform => {
-        // 保存平台的旧位置
-        const oldX = platform.x;
-        
         // 移动平台
         platform.x -= this.platformSpeed;
         
@@ -254,37 +251,7 @@ class DataBus {
             platform.moveDirection *= -1;
           }
         }
-        
-        // 检查玩家是否站在这个平台上
-        if (!this.player.isJumping &&
-            this.player.x < oldX + platform.size &&
-            this.player.x + this.player.size > oldX &&
-            this.player.y + this.player.size >= platform.y &&
-            this.player.y + this.player.size <= platform.y + 10) {
-          // 玩家站在平台上，随平台一起移动
-          this.player.x -= this.platformSpeed;
-        }
       });
-      
-      // 检查玩家是否站在任何平台上
-      let isOnPlatform = false;
-      for (const platform of this.platforms) {
-        if (!this.player.isJumping &&
-            this.player.x < platform.x + platform.size &&
-            this.player.x + this.player.size > platform.x &&
-            this.player.y + this.player.size >= platform.y &&
-            this.player.y + this.player.size <= platform.y + 10) {
-          isOnPlatform = true;
-          break;
-        }
-      }
-      
-      // 如果玩家不在任何平台上，开始掉落
-      if (!this.player.isJumping && !isOnPlatform) {
-        this.player.isJumping = true;
-        this.player.velocityY = 0;
-        this.player.velocityX = 0;
-      }
       
       // 生成新平台
       const lastPlatform = this.platforms[this.platforms.length - 1];
