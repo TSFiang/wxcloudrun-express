@@ -269,17 +269,24 @@ class DataBus {
       }
     }
     
+    // 玩家实际渲染大小
+    const playerRenderWidth = 60;
+    const playerRenderHeight = 80;
+    
     // 如果找到平台，将玩家放在上面
     if (lastPlatform) {
-      this.player.x = lastPlatform.x + lastPlatform.size / 2 - this.player.size / 2;
-      this.player.y = lastPlatform.y - this.player.size;
+      // 使用渲染大小计算位置，确保玩家正确显示在平台上
+      this.player.x = lastPlatform.x + lastPlatform.size / 2 - playerRenderWidth / 2;
+      this.player.y = lastPlatform.y - playerRenderHeight;
       this.player.isJumping = false;
       this.player.velocityY = 0;
       this.player.velocityX = 0;
       this.player.currentPlatform = lastPlatform;
       this.player.state = 'stand';
+      console.log('复活位置:', this.player.x, this.player.y, '平台位置:', lastPlatform.x, lastPlatform.y);
     } else {
       // 如果没有找到平台，重新初始化
+      this.initPlatforms();
       this.initPlayer();
     }
     

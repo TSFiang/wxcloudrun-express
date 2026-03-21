@@ -55,7 +55,12 @@ class Main {
     GameGlobal.databus = new DataBus();
     GameGlobal.musicManager = new Music();
     GameGlobal.feedbackManager = new FeedbackManager();
-    GameGlobal.main = this; // 保存 Main 实例引用
+    GameGlobal.main = this;
+    
+    // 初始化广告管理器
+    if (typeof AdManager !== 'undefined') {
+      GameGlobal.adManager = new AdManager();
+    }
 
     this.gameInfo = new GameInfo();
 
@@ -126,7 +131,32 @@ class Main {
 
   watchAd() {
     console.log('看广告复活');
-    GameGlobal.databus.revive();
+    
+    // 检查广告是否可用
+    if (GameGlobal.adManager && GameGlobal.adManager.isRewardedVideoAvailable()) {
+      // 显示激励视频广告
+      GameGlobal.adManager.showRewardedVideoAd(
+        // 成功回调：用户完整观看广告后复活
+        () => {
+          console.log('广告观看成功，执行复活');
+          GameGlobal.databus.revive();
+        },
+        // 失败回调
+        (errMsg) => {
+          console.log('广告观看失败:', errMsg);
+          // 可以选择直接复活或提示用户
+          // GameGlobal.databus.revive(); // 如果想失败也复活，取消注释
+          wx.showToast({
+            title: errMsg || '广告加载失败',
+            icon: 'none'
+          });
+        }
+      );
+    } else {
+      // 广告不可用，直接复活（开发阶段）
+      console.log('广告不可用，直接复活');
+      GameGlobal.databus.revive();
+    }
   }
 
   pause() {
