@@ -8,7 +8,8 @@ let databusInstance;
  */
 class DataBus {
   // 游戏状态
-  gameState = 'menu'; // 游戏状态：menu, playing, gameOver, success, collection, tutorial
+  gameState = 'menu'; // 游戏状态：menu, playing, gameOver, success, collection, tutorial, paused
+  isPaused = false; // 游戏是否暂停
   
   // 游戏数据
   frame = 0; // 当前帧数

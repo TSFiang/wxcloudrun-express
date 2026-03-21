@@ -184,10 +184,15 @@ class GameInfo extends Emitter {
         this.renderMenu(ctx);
         break;
       case 'playing':
+      case 'paused':
         this.renderPlaying(ctx);
         // 显示教程提示
         if (GameGlobal.databus.showTutorial) {
           this.renderTutorial(ctx);
+        }
+        // 显示暂停界面
+        if (gameState === 'paused') {
+          this.renderPaused(ctx);
         }
         break;
       case 'gameOver':
@@ -257,6 +262,24 @@ class GameInfo extends Emitter {
     
     // 绘制返回按钮
     this.drawButton(ctx, '返回', this.btnAreas.backToMenu);
+  }
+  
+  // 渲染暂停界面
+  renderPaused(ctx) {
+    // 绘制半透明遮罩
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    
+    // 绘制暂停文字
+    this.setFont(ctx, 36, '#ffffff');
+    ctx.textAlign = 'center';
+    ctx.fillText('游戏暂停', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 50);
+    
+    // 绘制提示文字
+    this.setFont(ctx, 20, '#ffffff');
+    ctx.fillText('点击暂停按钮继续游戏', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 10);
+    
+    ctx.textAlign = 'left';
   }
   
   // 渲染教程提示
@@ -823,6 +846,7 @@ class GameInfo extends Emitter {
     // 检查是否点击了暂停按钮
     if (this.isInArea(x, y, this.btnAreas.pause)) {
       // 暂停游戏逻辑
+      this.emit('pause');
       return;
     }
     

@@ -65,6 +65,7 @@ class Main {
     this.gameInfo.on('restart', this.restart.bind(this));
     this.gameInfo.on('share', this.share.bind(this));
     this.gameInfo.on('watchAd', this.watchAd.bind(this));
+    this.gameInfo.on('pause', this.pause.bind(this));
 
     // 开始游戏
     this.start();
@@ -112,7 +113,7 @@ class Main {
    * 返回主菜单
    */
   backToMenu() {
-    GameGlobal.databus.gameState = 'menu';
+    GameGlobal.databus.reset();
   }
 
   /**
@@ -138,6 +139,21 @@ class Main {
     console.log('看广告复活');
     // 复活逻辑
     GameGlobal.databus.startGame();
+  }
+
+  /**
+   * 暂停游戏
+   */
+  pause() {
+    // 切换暂停状态
+    const databus = GameGlobal.databus;
+    if (databus.gameState === 'playing') {
+      databus.gameState = 'paused';
+      databus.isPaused = true;
+    } else if (databus.gameState === 'paused') {
+      databus.gameState = 'playing';
+      databus.isPaused = false;
+    }
   }
 
   /**
