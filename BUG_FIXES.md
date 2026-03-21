@@ -17,12 +17,13 @@
 2. **第二次修复**：在gameinfo.js中添加`const SCREEN_WIDTH = window.SCREEN_WIDTH || 375`
 3. **第三次修复**：在gameinfo.js构造函数中定义局部变量
 4. **第四次修复**：使用固定的设计稿尺寸，在render.js中定义，gameinfo.js中直接使用
-5. **第五次修复（最终）**：在render.js中定义SCREEN_WIDTH和SCREEN_HEIGHT，在gameinfo.js中直接使用固定值375和667
+5. **第五次修复**：在render.js中定义SCREEN_WIDTH和SCREEN_HEIGHT，在gameinfo.js中直接使用固定值375和667
+6. **第六次修复（最终）**：使用sed命令批量替换，但出现了新的语法错误
 
 **最终解决方案**：
 - 在render.js中定义SCREEN_WIDTH和SCREEN_HEIGHT，并挂载到window对象
 - 在gameinfo.js中直接使用固定值375和667，不再定义变量
-- 使用sed命令批量替换所有SCREEN_WIDTH和SCREEN_HEIGHT为固定值
+- 手动修复sed命令导致的语法错误
 
 **修改的文件**：
 - js/render.js：定义SCREEN_WIDTH和SCREEN_HEIGHT
@@ -32,6 +33,40 @@
 - 避免在多个文件中定义相同的常量
 - 使用全局变量或固定值，而不是重复定义
 - 添加代码审查流程，确保不会引入重复定义
+- 不要使用sed命令批量替换，容易出错
+
+---
+
+### Bug #1.1: sed命令导致的语法错误
+
+**问题描述**：
+- 游戏加载失败，提示"SyntaxError: Unexpected number '.375'. Expected ')' to end a compound expression"
+- GameInfo class not found
+
+**根本原因**：
+- 使用sed命令批量替换SCREEN_WIDTH和SCREEN_HEIGHT时，错误地将`window.SCREEN_WIDTH`替换成了`window.375`
+- 导致语法错误，JavaScript引擎无法解析`window.375`
+
+**错误示例**：
+```javascript
+// 错误的替换结果
+ctx.drawImage(backgroundImage, 0, 0, (window.375 || 375), (window.667 || 667));
+
+// 正确的应该是
+ctx.drawImage(backgroundImage, 0, 0, 375, 667);
+```
+
+**解决方案**：
+- 手动修复所有`window.375`和`window.667`为正确的固定值375和667
+- 不再使用`window.SCREEN_WIDTH || 375`这样的表达式，直接使用固定值
+
+**修改的文件**：
+- js/runtime/gameinfo.js：修复所有错误的替换
+
+**预防措施**：
+- 不要使用sed命令批量替换，容易出错
+- 手动检查和修改代码，确保语法正确
+- 添加代码审查流程，确保不会引入语法错误
 
 ---
 
