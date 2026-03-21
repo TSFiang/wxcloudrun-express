@@ -186,8 +186,8 @@ class DataBus {
 
   // 获取随机平台类型
   getRandomPlatformType() {
-    // 随分数增加，增加特殊平台的出现频率（降低增长速度）
-    const specialChance = 0.05 + Math.min(this.score * 0.0002, 0.3);
+    // 降低特殊平台的出现频率，避免道具过多
+    const specialChance = 0.02 + Math.min(this.score * 0.0001, 0.15); // 降低基础频率和增长速度
     const normalChance = 1 - specialChance;
     
     const types = ['normal', 'shield', 'rainbow', 'doubleScore', 'extraBean'];
@@ -297,6 +297,12 @@ class DataBus {
   // 处理跳跃
   jump(power) {
     if (!this.player.isJumping) {
+      // 检查倒计时是否结束
+      if (this.gameStartTime && Date.now() < this.gameStartTime) {
+        // 倒计时还没结束，不允许跳跃
+        return;
+      }
+      
       // 第一次跳跃时，开始游戏移动
       if (!this.isGameStarted) {
         this.isGameStarted = true;
