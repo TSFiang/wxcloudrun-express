@@ -52,22 +52,22 @@ class GameInfo extends Emitter {
     this.btnAreas = {
       // 主界面按钮
       startGame: {
-        startX: SCREEN_WIDTH / 2 - 100,
-        startY: SCREEN_HEIGHT / 2 - 60,
-        endX: SCREEN_WIDTH / 2 + 100,
-        endY: SCREEN_HEIGHT / 2 - 10,
+        startX: (window.SCREEN_WIDTH || 375) / 2 - 100,
+        startY: (window.SCREEN_HEIGHT || 667) / 2 - 60,
+        endX: (window.SCREEN_WIDTH || 375) / 2 + 100,
+        endY: (window.SCREEN_HEIGHT || 667) / 2 - 10,
       },
       collection: {
-        startX: SCREEN_WIDTH / 2 - 100,
-        startY: SCREEN_HEIGHT / 2 + 20,
-        endX: SCREEN_WIDTH / 2 + 100,
-        endY: SCREEN_HEIGHT / 2 + 70,
+        startX: (window.SCREEN_WIDTH || 375) / 2 - 100,
+        startY: (window.SCREEN_HEIGHT || 667) / 2 + 20,
+        endX: (window.SCREEN_WIDTH || 375) / 2 + 100,
+        endY: (window.SCREEN_HEIGHT || 667) / 2 + 70,
       },
       leaderboard: {
-        startX: SCREEN_WIDTH / 2 - 100,
-        startY: SCREEN_HEIGHT / 2 + 100,
-        endX: SCREEN_WIDTH / 2 + 100,
-        endY: SCREEN_HEIGHT / 2 + 150,
+        startX: (window.SCREEN_WIDTH || 375) / 2 - 100,
+        startY: (window.SCREEN_HEIGHT || 667) / 2 + 100,
+        endX: (window.SCREEN_WIDTH || 375) / 2 + 100,
+        endY: (window.SCREEN_HEIGHT || 667) / 2 + 150,
       },
       settings: {
         startX: 20,
@@ -77,22 +77,22 @@ class GameInfo extends Emitter {
       },
       // 游戏结束按钮
       restart: {
-        startX: SCREEN_WIDTH / 2 - 80,
-        startY: SCREEN_HEIGHT / 2 + 20,
-        endX: SCREEN_WIDTH / 2 + 80,
-        endY: SCREEN_HEIGHT / 2 + 60,
+        startX: (window.SCREEN_WIDTH || 375) / 2 - 80,
+        startY: (window.SCREEN_HEIGHT || 667) / 2 + 20,
+        endX: (window.SCREEN_WIDTH || 375) / 2 + 80,
+        endY: (window.SCREEN_HEIGHT || 667) / 2 + 60,
       },
       share: {
-        startX: SCREEN_WIDTH / 2 - 80,
-        startY: SCREEN_HEIGHT / 2 + 80,
-        endX: SCREEN_WIDTH / 2 + 80,
-        endY: SCREEN_HEIGHT / 2 + 120,
+        startX: (window.SCREEN_WIDTH || 375) / 2 - 80,
+        startY: (window.SCREEN_HEIGHT || 667) / 2 + 80,
+        endX: (window.SCREEN_WIDTH || 375) / 2 + 80,
+        endY: (window.SCREEN_HEIGHT || 667) / 2 + 120,
       },
       watchAd: {
-        startX: SCREEN_WIDTH / 2 - 80,
-        startY: SCREEN_HEIGHT / 2 + 140,
-        endX: SCREEN_WIDTH / 2 + 80,
-        endY: SCREEN_HEIGHT / 2 + 180,
+        startX: (window.SCREEN_WIDTH || 375) / 2 - 80,
+        startY: (window.SCREEN_HEIGHT || 667) / 2 + 140,
+        endX: (window.SCREEN_WIDTH || 375) / 2 + 80,
+        endY: (window.SCREEN_HEIGHT || 667) / 2 + 180,
       },
       backToMenu: {
         startX: 20,
@@ -325,7 +325,22 @@ class GameInfo extends Emitter {
     const databus = GameGlobal.databus;
     
     // 绘制背景图片
-    ctx.drawImage(backgroundImage, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.drawImage(backgroundImage, 0, 0, (window.SCREEN_WIDTH || 375), (window.SCREEN_HEIGHT || 667));
+    
+    // 显示倒计时
+    if (databus.gameStartTime && Date.now() < databus.gameStartTime) {
+      const remainingTime = Math.ceil((databus.gameStartTime - Date.now()) / 1000);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(0, 0, (window.SCREEN_WIDTH || 375), (window.SCREEN_HEIGHT || 667));
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      this.setFont(ctx, 48, '#ffffff');
+      ctx.fillText(remainingTime.toString(), (window.SCREEN_WIDTH || 375) / 2, (window.SCREEN_HEIGHT || 667) / 2);
+      
+      this.setFont(ctx, 20, '#ffffff');
+      ctx.fillText('准备开始...', (window.SCREEN_WIDTH || 375) / 2, (window.SCREEN_HEIGHT || 667) / 2 + 40);
+    }
     
     // 绘制顶部信息栏
     this.renderTopInfo(ctx);
@@ -366,7 +381,7 @@ class GameInfo extends Emitter {
     // 绘制拼豆数量
     this.setFont(ctx, 16, '#ffffff');
     ctx.textAlign = 'center';
-    ctx.fillText(`拼豆: ${databus.beanPieces}`, SCREEN_WIDTH / 2, 40);
+    ctx.fillText(`拼豆: ${databus.beanPieces}`, (window.SCREEN_WIDTH || 375) / 2, 40);
   }
 
   // 渲染平台

@@ -47,9 +47,9 @@ class DataBus {
   
   // 平台相关
   platforms = []; // 平台数组
-  platformSpeed = 2; // 平台移动速度
-  basePlatformGap = 80; // 基础平台间距
-  basePlatformSize = 60; // 基础平台大小
+  platformSpeed = 1; // 平台移动速度（降低初始速度）
+  basePlatformGap = 100; // 基础平台间距（增加间距，给玩家更多时间）
+  basePlatformSize = 80; // 基础平台大小（增大平台，更容易跳中）
   
   // 收集相关
   collectedBeans = []; // 收集的拼豆
@@ -140,6 +140,10 @@ class DataBus {
     this.gameState = 'playing';
     this.initPlatforms();
     this.initPlayer();
+    
+    // 添加延迟开始，给玩家准备时间
+    this.isGameStarted = false;
+    this.gameStartTime = Date.now() + 2000; // 2秒后开始移动平台
   }
 
   // 初始化平台
@@ -176,8 +180,8 @@ class DataBus {
 
   // 获取随机平台类型
   getRandomPlatformType() {
-    // 随分数增加，增加特殊平台的出现频率
-    const specialChance = 0.1 + Math.min(this.score * 0.0005, 0.5);
+    // 随分数增加，增加特殊平台的出现频率（降低增长速度）
+    const specialChance = 0.05 + Math.min(this.score * 0.0002, 0.3);
     const normalChance = 1 - specialChance;
     
     const types = ['normal', 'shield', 'rainbow', 'doubleScore', 'extraBean'];
@@ -200,15 +204,15 @@ class DataBus {
   generatePlatform() {
     const lastPlatform = this.platforms[this.platforms.length - 1];
     
-    // 动态调整平台间距，随分数增加而增大
-    const platformGap = this.basePlatformGap + Math.min(this.score * 0.05, 40);
+    // 动态调整平台间距，随分数增加而增大（降低增长速度）
+    const platformGap = this.basePlatformGap + Math.min(this.score * 0.02, 30);
     
-    // 动态调整平台大小，随分数增加而减小
-    const platformSize = Math.max(this.basePlatformSize * (0.9 - Math.min(this.score * 0.001, 0.4)), 30);
+    // 动态调整平台大小，随分数增加而减小（降低减小速度，保持最小值更大）
+    const platformSize = Math.max(this.basePlatformSize * (0.95 - Math.min(this.score * 0.0005, 0.3)), 50);
     
     const platform = {
-      x: lastPlatform.x + platformSize + platformGap + Math.random() * 10,
-      y: lastPlatform.y + (Math.random() - 0.5) * 80,
+      x: lastPlatform.x + platformSize + platformGap + Math.random() * 5, // 减少随机偏移
+      y: lastPlatform.y + (Math.random() - 0.5) * 60, // 减少垂直偏移，让平台更容易到达
       size: platformSize,
       color: this.getRandomColor(),
       type: this.getRandomPlatformType(),
@@ -228,7 +232,7 @@ class DataBus {
     this.platforms = this.platforms.filter(platform => platform.x + platform.size > 0);
     
     // 只有游戏开始后才移动平台
-    if (this.isGameStarted) {
+    if (this.isGameStarted && Date.now() >= this.gameStartTime) {
       // 移动平台
       this.platforms.forEach(platform => {
         // 保存平台的旧位置
@@ -330,8 +334,8 @@ class DataBus {
           // 增加分数
           this.score++;
           
-          // 增加平台速度，随分数增加而平滑增加
-          this.platformSpeed = 2 + Math.min(this.score * 0.01, 5);
+          // 增加平台速度，随分数增加而平滑增加（降低增长速度）
+          this.platformSpeed = 1 + Math.min(this.score * 0.005, 3);
           
           // 短暂延迟后恢复站立状态
           setTimeout(() => {
