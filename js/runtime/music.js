@@ -1,8 +1,5 @@
 let instance;
 
-// 检测是否在微信小游戏环境
-const isWechatGame = typeof wx !== 'undefined' && typeof wx.createCanvas !== 'undefined';
-
 /**
  * 统一的音效管理器
  */
@@ -12,7 +9,7 @@ class Music {
 
     instance = this;
 
-    if (isWechatGame) {
+    if (window.isWechatGame) {
       this.bgmAudio = wx.createInnerAudioContext();
       this.shootAudio = wx.createInnerAudioContext();
       this.boomAudio = wx.createInnerAudioContext();

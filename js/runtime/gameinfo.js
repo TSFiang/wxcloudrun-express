@@ -6,12 +6,9 @@ if (typeof TinyEmitter === 'undefined') {
 // 创建Emitter别名，兼容现有代码
 const Emitter = TinyEmitter;
 
-// 检测是否在微信小游戏环境
-const isWechatGame = typeof wx !== 'undefined' && typeof wx.createCanvas !== 'undefined';
-
 // 创建图片的通用函数
 function createImage() {
-  if (isWechatGame) {
+  if (window.isWechatGame) {
     return wx.createImage();
   } else if (typeof window !== 'undefined') {
     return new Image();
@@ -142,7 +139,7 @@ class GameInfo extends Emitter {
     this.touchStartTime = 0;
 
     // 绑定触摸事件
-    if (isWechatGame) {
+    if (window.isWechatGame) {
       wx.onTouchStart(this.touchStartHandler.bind(this));
       wx.onTouchEnd(this.touchEndHandler.bind(this));
       wx.onTouchMove(this.touchMoveHandler.bind(this));
