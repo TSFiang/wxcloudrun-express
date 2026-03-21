@@ -145,7 +145,7 @@ class DataBus {
   // 初始化平台
   initPlatforms() {
     this.platforms = [];
-    const startY = SCREEN_HEIGHT - 100;
+    const startY = window.SCREEN_HEIGHT - 100;
     
     for (let i = 0; i < 8; i++) {
       const platform = {
@@ -217,7 +217,7 @@ class DataBus {
     };
     
     // 确保平台在屏幕范围内
-    platform.y = Math.max(50, Math.min(SCREEN_HEIGHT - 100, platform.y));
+    platform.y = Math.max(50, Math.min(window.SCREEN_HEIGHT - 100, platform.y));
     
     this.platforms.push(platform);
   }
@@ -240,7 +240,7 @@ class DataBus {
         // 移动平台的额外移动
         if (platform.isMoving) {
           platform.y += platform.moveDirection * 0.5;
-          if (platform.y < 50 || platform.y > SCREEN_HEIGHT - 100) {
+          if (platform.y < 50 || platform.y > window.SCREEN_HEIGHT - 100) {
             platform.moveDirection *= -1;
           }
         }
@@ -278,7 +278,7 @@ class DataBus {
       
       // 生成新平台
       const lastPlatform = this.platforms[this.platforms.length - 1];
-      if (lastPlatform && lastPlatform.x < SCREEN_WIDTH - this.basePlatformGap) {
+      if (lastPlatform && lastPlatform.x < window.SCREEN_WIDTH - this.basePlatformGap) {
         this.generatePlatform();
       }
     }
@@ -355,7 +355,7 @@ class DataBus {
     }
     
     // 检测是否掉落
-    if (this.player.y > SCREEN_HEIGHT) {
+    if (this.player.y > window.SCREEN_HEIGHT) {
       this.gameOver();
     }
   }
@@ -498,19 +498,11 @@ class DataBus {
   }
 }
 
-// 全局常量
-const SCREEN_WIDTH = 375;
-const SCREEN_HEIGHT = 667;
-
 // 将DataBus类挂载到全局对象
 if (typeof window !== 'undefined') {
   window.DataBus = DataBus;
-  window.SCREEN_WIDTH = SCREEN_WIDTH;
-  window.SCREEN_HEIGHT = SCREEN_HEIGHT;
 }
 
 if (typeof GameGlobal !== 'undefined') {
   GameGlobal.DataBus = DataBus;
-  GameGlobal.SCREEN_WIDTH = SCREEN_WIDTH;
-  GameGlobal.SCREEN_HEIGHT = SCREEN_HEIGHT;
 }
