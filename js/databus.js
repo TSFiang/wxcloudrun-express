@@ -253,48 +253,81 @@ class DataBus {
   revive() {
     // 保持当前分数和进度
     const currentScore = this.score;
-    const currentPlatforms = [...this.platforms];
     const currentPlatformSpeed = this.platformSpeed;
     
     // 恢复游戏状态
     this.gameState = 'playing';
     this.isGameStarted = true;
     
-    // 找到最后一个平台（玩家掉落前所在的平台）
-    let lastPlatform = null;
-    for (let i = currentPlatforms.length - 1; i >= 0; i--) {
-      if (currentPlatforms[i].x + currentPlatforms[i].size > 0) {
-        lastPlatform = currentPlatforms[i];
-        break;
-      }
-    }
-    
     // 玩家实际渲染大小
     const playerRenderWidth = 60;
     const playerRenderHeight = 80;
     
-    // 如果找到平台，将玩家放在上面
-    if (lastPlatform) {
-      // 使用渲染大小计算位置，确保玩家正确显示在平台上
-      this.player.x = lastPlatform.x + lastPlatform.size / 2 - playerRenderWidth / 2;
-      this.player.y = lastPlatform.y - playerRenderHeight;
+    // 屏幕边界
+    const screenWidth = 375;
+    const screenHeight = 667;
+    
+    // 找到一个在屏幕可见范围内的平台
+    let targetPlatform = null;
+    for (let i = this.platforms.length - 1; i >= 0; i--) {
+      const p = this.platforms[i];
+      // 平台必须在屏幕内可见
+      if (p.x > 0 && p.x + p.size < screenWidth && p.y > 100 && p.y < screenHeight - 200) {
+        targetPlatform = p;
+        break;
+      }
+    }
+    
+    // 如果找到合适的平台
+    if (targetPlatform) {
+      // 计算玩家位置，确保在屏幕内
+      let playerX = targetPlatform.x + targetPlatform.size / 2 - playerRenderWidth / 2;
+      let playerY = targetPlatform.y - playerRenderHeight;
+      
+      // 确保玩家在屏幕水平范围内
+      playerX = Math.max(10, Math.min(playerX, screenWidth - playerRenderWidth - 10));
+      
+      // 确保玩家在屏幕垂直范围内
+      playerY = Math.max(50, Math.min(playerY, screenHeight - 200));
+      
+      this.player.x = playerX;
+      this.player.y = playerY;
       this.player.isJumping = false;
       this.player.velocityY = 0;
       this.player.velocityX = 0;
-      this.player.currentPlatform = lastPlatform;
+      this.player.currentPlatform = targetPlatform;
       this.player.state = 'stand';
-      console.log('复活位置:', this.player.x, this.player.y, '平台位置:', lastPlatform.x, lastPlatform.y);
+      
+      console.log('复活成功 - 玩家位置:', playerX, playerY, '平台位置:', targetPlatform.x, targetPlatform.y);
     } else {
-      // 如果没有找到平台，重新初始化
-      this.initPlatforms();
-      this.initPlayer();
+      // 没有找到合适的平台，在屏幕中央创建一个新平台
+      const newPlatform = {
+        x: screenWidth / 2 - 50,
+        y: 350,
+        size: 100,
+        color: '#4CAF50',
+        type: 'normal',
+        isMoving: false
+      };
+      this.platforms.push(newPlatform);
+      
+      // 将玩家放在新平台上
+      this.player.x = newPlatform.x + newPlatform.size / 2 - playerRenderWidth / 2;
+      this.player.y = newPlatform.y - playerRenderHeight;
+      this.player.isJumping = false;
+      this.player.velocityY = 0;
+      this.player.velocityX = 0;
+      this.player.currentPlatform = newPlatform;
+      this.player.state = 'stand';
+      
+      console.log('复活成功 - 创建新平台，玩家位置:', this.player.x, this.player.y);
     }
     
     // 恢复分数和速度
     this.score = currentScore;
     this.platformSpeed = currentPlatformSpeed;
     
-    console.log('复活成功！当前分数:', this.score);
+    console.log('复活完成！当前分数:', this.score);
   }
 
   // 初始化平台
