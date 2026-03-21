@@ -211,8 +211,8 @@ class GameInfo extends Emitter {
     // 绘制背景图片
     ctx.drawImage(backgroundImage, 0, 0, 375, 667);
     
-    // 绘制标题
-    this.setFont(ctx, 36, '#ffffff');
+    // 绘制标题（黑色字体）
+    this.setFont(ctx, 36, '#000000');
     ctx.textAlign = 'center';
     ctx.fillText('设置', 375 / 2, 80);
     
@@ -229,13 +229,13 @@ class GameInfo extends Emitter {
     options.forEach((option, index) => {
       const y = 150 + index * 60;
       
-      // 绘制选项标签
-      this.setFont(ctx, 20, '#ffffff');
+      // 绘制选项标签（黑色字体）
+      this.setFont(ctx, 20, '#000000');
       ctx.textAlign = 'left';
       ctx.fillText(option.label, 50, y);
       
-      // 绘制选项值
-      this.setFont(ctx, 20, '#ffffff');
+      // 绘制选项值（黑色字体）
+      this.setFont(ctx, 20, '#000000');
       ctx.textAlign = 'right';
       
       if (typeof option.value === 'boolean') {
@@ -250,8 +250,8 @@ class GameInfo extends Emitter {
                     option.value === 'medium' ? '中' : '低', 375 - 50, y);
       }
       
-      // 绘制选项区域
-      ctx.strokeStyle = '#ffffff';
+      // 绘制选项区域（黑色边框）
+      ctx.strokeStyle = '#000000';
       ctx.lineWidth = 2;
       ctx.strokeRect(30, y - 20, 375 - 60, 40);
     });
@@ -413,33 +413,254 @@ class GameInfo extends Emitter {
     const platforms = databus.platforms;
     
     platforms.forEach(platform => {
-      // 绘制平台
-      ctx.fillStyle = platform.color;
-      ctx.beginPath();
-      ctx.rect(platform.x, platform.y, platform.size, 10);
-      ctx.fill();
-      
-      // 绘制平台类型标记
-      if (platform.type !== 'normal') {
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'center';
-        this.setFont(ctx, 12);
-        switch (platform.type) {
-          case 'shield':
-            ctx.fillText('🛡️', platform.x + platform.size / 2, platform.y - 5);
-            break;
-          case 'rainbow':
-            ctx.fillText('🌈', platform.x + platform.size / 2, platform.y - 5);
-            break;
-          case 'doubleScore':
-            ctx.fillText('2x', platform.x + platform.size / 2, platform.y - 5);
-            break;
-          case 'extraBean':
-            ctx.fillText('🫘', platform.x + platform.size / 2, platform.y - 5);
-            break;
-        }
+      // 特殊绘制山形起始平台
+      if (platform.type === 'mountain') {
+        this.renderMountainPlatform(ctx, platform);
+        return; // 跳过普通平台绘制
       }
+      
+      // 根据平台类型绘制不同样式
+      this.renderPlatformByType(ctx, platform);
     });
+  }
+  
+  // 根据平台类型渲染
+  renderPlatformByType(ctx, platform) {
+    // 检查平台是否正在消失
+    if (platform.isDisappearing) {
+      ctx.globalAlpha = Math.max(0, 1 - platform.disappearTimer / platform.disappearDelay);
+    }
+    
+    // 根据类型设置颜色
+    let platformColor = platform.color;
+    let borderColor = '#ffffff';
+    let specialEffect = false;
+    
+    switch (platform.type) {
+      case 'normal':
+        // 普通平台：原色
+        platformColor = platform.color;
+        break;
+        
+      case 'moving':
+        // 移动平台：原色+移动提示
+        platformColor = platform.color;
+        specialEffect = true;
+        break;
+        
+      case 'bouncy':
+        // 弹跳平台：绿色+弹簧效果
+        platformColor = '#4CAF50';
+        borderColor = '#81C784';
+        specialEffect = true;
+        break;
+        
+      case 'disappearing':
+        // 消失平台：灰色+裂纹效果
+        platformColor = '#9E9E9E';
+        borderColor = '#BDBDBD';
+        specialEffect = true;
+        break;
+        
+      case 'danger':
+        // 危险平台：红色+尖刺效果
+        platformColor = '#F44336';
+        borderColor = '#E53935';
+        specialEffect = true;
+        break;
+    }
+    
+    // 绘制平台主体
+    ctx.fillStyle = platformColor;
+    ctx.beginPath();
+    ctx.rect(platform.x, platform.y, platform.size, 10);
+    ctx.fill();
+    
+    // 绘制边框
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(platform.x, platform.y, platform.size, 10);
+    
+    // 绘制特殊效果
+    if (specialEffect) {
+      this.renderPlatformSpecialEffect(ctx, platform);
+    }
+    
+    // 重置透明度
+    if (platform.isDisappearing) {
+      ctx.globalAlpha = 1;
+    }
+  }
+  
+  // 渲染平台特殊效果
+  renderPlatformSpecialEffect(ctx, platform) {
+    switch (platform.type) {
+      case 'moving':
+        // 移动平台：脉冲动画+方向箭头
+        platform.pulseAlpha = 0.5 + Math.sin(Date.now() / 200) * 0.3;
+        
+        const arrowColor = platform.moveDirection > 0 ? '#4CAF50' : '#FF5722';
+        ctx.fillStyle = arrowColor;
+        ctx.globalAlpha = platform.pulseAlpha;
+        
+        // 绘制箭头
+        const arrowX = platform.moveDirection > 0 ? 
+                       platform.x + platform.size - 15 : 
+                       platform.x + 5;
+        const arrowY = platform.y + 5;
+        
+        ctx.beginPath();
+        if (platform.moveDirection > 0) {
+          // 向下箭头
+          ctx.moveTo(arrowX, arrowY);
+          ctx.lineTo(arrowX + 10, arrowY);
+          ctx.lineTo(arrowX + 5, arrowY + 10);
+        } else {
+          // 向上箭头
+          ctx.moveTo(arrowX, arrowY + 10);
+          ctx.lineTo(arrowX + 10, arrowY + 10);
+          ctx.lineTo(arrowX + 5, arrowY);
+        }
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.globalAlpha = 1;
+        
+        // 绘制移动平台边框高亮
+        ctx.strokeStyle = arrowColor;
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = platform.pulseAlpha;
+        ctx.strokeRect(platform.x, platform.y, platform.size, 10);
+        ctx.globalAlpha = 1;
+        break;
+        
+      case 'bouncy':
+        // 弹跳平台：弹簧效果
+        ctx.fillStyle = '#2E7D32';
+        ctx.globalAlpha = 0.8;
+        
+        // 绘制弹簧线条
+        const springCount = 3;
+        const springWidth = platform.size / (springCount + 1);
+        for (let i = 1; i <= springCount; i++) {
+          const springX = platform.x + springWidth * i;
+          const springY = platform.y + 5;
+          
+          ctx.beginPath();
+          ctx.moveTo(springX - 3, springY);
+          ctx.lineTo(springX, springY - 8);
+          ctx.lineTo(springX + 3, springY);
+          ctx.stroke();
+        }
+        
+        // 绘制弹跳图标
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('⬆️', platform.x + platform.size / 2, platform.y - 5);
+        ctx.globalAlpha = 1;
+        break;
+        
+      case 'disappearing':
+        // 消失平台：裂纹效果
+        ctx.strokeStyle = '#616161';
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.6;
+        
+        // 绘制裂纹
+        const cracks = [
+          { x1: platform.x + platform.size * 0.3, y1: platform.y + 2, x2: platform.x + platform.size * 0.5, y2: platform.y + 8 },
+          { x1: platform.x + platform.size * 0.5, y1: platform.y + 2, x2: platform.x + platform.size * 0.7, y2: platform.y + 8 },
+          { x1: platform.x + platform.size * 0.2, y1: platform.y + 5, x2: platform.x + platform.size * 0.4, y2: platform.y + 10 }
+        ];
+        
+        cracks.forEach(crack => {
+          ctx.beginPath();
+          ctx.moveTo(crack.x1, crack.y1);
+          ctx.lineTo(crack.x2, crack.y2);
+          ctx.stroke();
+        });
+        
+        // 绘制警告图标
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚠️', platform.x + platform.size / 2, platform.y - 5);
+        ctx.globalAlpha = 1;
+        break;
+        
+      case 'danger':
+        // 危险平台：尖刺效果
+        ctx.fillStyle = '#B71C1C';
+        ctx.globalAlpha = 0.9;
+        
+        // 绘制尖刺
+        const spikeCount = Math.floor(platform.size / 15);
+        const spikeWidth = platform.size / spikeCount;
+        
+        for (let i = 0; i < spikeCount; i++) {
+          const spikeX = platform.x + spikeWidth * i;
+          const spikeY = platform.y;
+          
+          ctx.beginPath();
+          ctx.moveTo(spikeX, spikeY);
+          ctx.lineTo(spikeX + spikeWidth / 2, spikeY - 8);
+          ctx.lineTo(spikeX + spikeWidth, spikeY);
+          ctx.closePath();
+          ctx.fill();
+        }
+        
+        // 绘制危险图标
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('💀', platform.x + platform.size / 2, platform.y - 12);
+        ctx.globalAlpha = 1;
+        break;
+    }
+  }
+  
+  // 渲染山形起始平台
+  renderMountainPlatform(ctx, platform) {
+    const x = platform.x;
+    const y = platform.y;
+    const width = platform.size;
+    
+    // 绘制山形（使用渐变色）
+    const gradient = ctx.createLinearGradient(x, y, x, y + 100);
+    gradient.addColorStop(0, '#8B4513'); // 棕色山顶
+    gradient.addColorStop(0.5, '#A0522D'); // 赭色山腰
+    gradient.addColorStop(1, '#654321'); // 深棕色山底
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    
+    // 绘制山峰形状
+    ctx.moveTo(x, y + 100); // 左下角
+    ctx.lineTo(x + width * 0.2, y + 30); // 左侧山腰
+    ctx.lineTo(x + width * 0.35, y + 50); // 左侧小峰
+    ctx.lineTo(x + width * 0.5, y); // 山顶
+    ctx.lineTo(x + width * 0.65, y + 50); // 右侧小峰
+    ctx.lineTo(x + width * 0.8, y + 30); // 右侧山腰
+    ctx.lineTo(x + width, y + 100); // 右下角
+    ctx.closePath();
+    ctx.fill();
+    
+    // 绘制山顶平台（玩家站立区域）
+    ctx.fillStyle = '#90EE90'; // 浅绿色草地
+    ctx.fillRect(x + width * 0.3, y - 5, width * 0.4, 15);
+    
+    // 添加一些装饰（小草）
+    ctx.strokeStyle = '#228B22'; // 深绿色
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+      const grassX = x + width * 0.3 + i * (width * 0.4 / 5);
+      const grassY = y - 5;
+      ctx.beginPath();
+      ctx.moveTo(grassX, grassY);
+      ctx.lineTo(grassX + 3, grassY - 8);
+      ctx.stroke();
+    }
   }
 
   // 渲染玩家
@@ -702,6 +923,11 @@ class GameInfo extends Emitter {
 
   // 处理触摸开始
   touchStartHandler(event) {
+    // 用户首次交互时启动音乐
+    if (GameGlobal.musicManager) {
+      GameGlobal.musicManager.onUserInteract();
+    }
+    
     let { clientX, clientY } = event.touches[0];
     
     console.log('Raw touch - clientX:', clientX, 'clientY:', clientY);
@@ -729,6 +955,13 @@ class GameInfo extends Emitter {
       case 'playing':
         this.handlePlayingTouchStart(clientX, clientY);
         break;
+      case 'paused':
+        // 暂停状态下也可以点击暂停按钮取消暂停
+        if (this.isInArea(clientX, clientY, this.btnAreas.pause)) {
+          this.emit('pause');
+          return;
+        }
+        break;
       case 'gameOver':
         this.handleGameOverTouch(clientX, clientY);
         break;
@@ -746,8 +979,11 @@ class GameInfo extends Emitter {
     const databus = GameGlobal.databus;
     const settings = databus.settings;
     
+    console.log('Settings touch - x:', x, 'y:', y);
+    
     // 检查是否点击了返回按钮
     if (this.isInArea(x, y, this.btnAreas.backToMenu)) {
+      console.log('Clicked back button');
       databus.gameState = 'menu';
       return;
     }
@@ -762,25 +998,47 @@ class GameInfo extends Emitter {
       { key: 'quality', y: 450 }
     ];
     
+    let clicked = false;
     options.forEach(option => {
-      if (y >= option.y - 20 && y <= option.y + 20 && x >= 30 && x <= 375 - 30) {
+      const inYRange = y >= option.y - 20 && y <= option.y + 20;
+      const inXRange = x >= 30 && x <= 375 - 30;
+      
+      console.log(`Option ${option.key}: inYRange=${inYRange}, inXRange=${inXRange}`);
+      
+      if (inYRange && inXRange) {
+        clicked = true;
         if (typeof settings[option.key] === 'boolean') {
           // 切换布尔值选项
           settings[option.key] = !settings[option.key];
+          console.log(`Toggled ${option.key} to ${settings[option.key]}`);
+          
+          // 特殊处理：音乐设置
+          if (option.key === 'music') {
+            // 同步音频状态
+            if (GameGlobal.musicManager) {
+              GameGlobal.musicManager.syncWithSettings();
+            }
+          }
         } else {
           // 切换其他选项
           if (option.key === 'difficulty') {
             // 循环切换难度
             settings.difficulty = settings.difficulty === 'easy' ? 'normal' : 
                                  settings.difficulty === 'normal' ? 'hard' : 'easy';
+            console.log(`Changed difficulty to ${settings.difficulty}`);
           } else if (option.key === 'quality') {
             // 循环切换画质
             settings.quality = settings.quality === 'high' ? 'medium' : 
                                settings.quality === 'medium' ? 'low' : 'high';
+            console.log(`Changed quality to ${settings.quality}`);
           }
         }
       }
     });
+    
+    if (!clicked) {
+      console.log('No option clicked');
+    }
   }
   
   // 处理教程触摸

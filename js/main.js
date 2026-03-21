@@ -25,6 +25,10 @@ class Main {
       console.error('GameInfo class not found');
       return;
     }
+    if (typeof FeedbackManager === 'undefined') {
+      console.error('FeedbackManager class not found');
+      return;
+    }
     
     // 获取canvas元素
     let canvasElement;
@@ -52,6 +56,7 @@ class Main {
     }
     GameGlobal.databus = new DataBus(); // 全局数据管理，用于管理游戏状态和数据
     GameGlobal.musicManager = new Music(); // 全局音乐管理实例
+    GameGlobal.feedbackManager = new FeedbackManager(); // 全局反馈管理实例
 
     // 创建游戏UI显示
     this.gameInfo = new GameInfo();
@@ -137,8 +142,8 @@ class Main {
   watchAd() {
     // 实现看广告逻辑
     console.log('看广告复活');
-    // 复活逻辑
-    GameGlobal.databus.startGame();
+    // 复活逻辑：在当前位置继续游戏
+    GameGlobal.databus.revive();
   }
 
   /**
@@ -162,6 +167,9 @@ class Main {
   render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // 清空画布
 
+    // 应用屏幕震动
+    GameGlobal.feedbackManager.applyShake(ctx);
+
     // 绘制游戏UI
     this.gameInfo.render(ctx);
 
@@ -171,6 +179,12 @@ class Main {
         ani.aniRender(ctx);
       }
     });
+
+    // 绘制反馈效果（粒子等）
+    GameGlobal.feedbackManager.render(ctx);
+
+    // 重置屏幕震动
+    GameGlobal.feedbackManager.resetShake(ctx);
   }
 
   // 游戏逻辑更新主函数
@@ -179,16 +193,22 @@ class Main {
 
     // 处理时间
     const now = Date.now();
-    const deltaTime = now - this.lastTime;
+    const deltaTime = (now - this.lastTime) / 1000; // 转换为秒
     this.lastTime = now;
+
+    // 更新反馈系统
+    GameGlobal.feedbackManager.update(deltaTime);
 
     // 游戏中逻辑
     if (GameGlobal.databus.gameState === 'playing') {
+      // 应用时间缩放
+      const scaledDeltaTime = deltaTime * GameGlobal.feedbackManager.timeScale;
+      
       // 更新平台
       GameGlobal.databus.updatePlatforms();
       
       // 更新玩家
-      GameGlobal.databus.updatePlayer();
+      GameGlobal.databus.updatePlayer(scaledDeltaTime);
     }
   }
 
