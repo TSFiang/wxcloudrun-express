@@ -48,6 +48,10 @@ class GameInfo extends Emitter {
       this.e = {};
     }
 
+    // 引用全局变量（从render.js中定义）
+    const SCREEN_WIDTH = window.SCREEN_WIDTH || 375;
+    const SCREEN_HEIGHT = window.SCREEN_HEIGHT || 667;
+
     // 按钮区域
     this.btnAreas = {
       // 主界面按钮
