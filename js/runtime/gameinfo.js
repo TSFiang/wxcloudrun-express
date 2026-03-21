@@ -1,4 +1,10 @@
-// 假设Emitter类在全局作用域中可用
+// 确保TinyEmitter类在全局作用域中可用
+if (typeof TinyEmitter === 'undefined') {
+  console.error('TinyEmitter class not found');
+}
+
+// 创建Emitter别名，兼容现有代码
+const Emitter = TinyEmitter;
 
 // 检测是否在微信小游戏环境
 const isWechatGame = typeof wx !== 'undefined' && typeof wx.createCanvas !== 'undefined';
