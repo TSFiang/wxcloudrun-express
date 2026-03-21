@@ -292,10 +292,18 @@ class DataBus {
       return;
     }
     
-    let isOnPlatform = false;
-    let currentPlatformObj = null;
+    // 先应用重力和移动
+    if (this.player.isJumping) {
+      // 应用重力
+      this.player.velocityY += 0.5;
+      this.player.y += this.player.velocityY;
+      this.player.x += this.player.velocityX;
+    }
     
     // 检测与平台的碰撞
+    let isOnPlatform = false;
+    let landedPlatform = null;
+    
     for (const platform of this.platforms) {
       // 检查玩家是否在平台的水平范围内
       const playerCenterX = this.player.x + this.player.size / 2;
@@ -305,18 +313,17 @@ class DataBus {
       // 检查玩家是否在平台的垂直范围内（落在平台上）
       const playerBottom = this.player.y + this.player.size;
       const isInVerticalRange = playerBottom >= platform.y && 
-                                 playerBottom <= platform.y + 15;
+                                 playerBottom <= platform.y + 20;
       
       if (isInHorizontalRange && isInVerticalRange) {
-        isOnPlatform = true;
-        currentPlatformObj = platform;
-        
+        // 玩家在平台上
         if (this.player.isJumping && this.player.velocityY > 0) {
-          // 落在平台上
+          // 玩家正在下落且碰到平台，落在平台上
           this.player.isJumping = false;
           this.player.velocityY = 0;
           this.player.velocityX = 0;
           this.player.y = platform.y - this.player.size;
+          landedPlatform = platform;
           
           // 检查是否是新的平台（避免重复加分）
           if (this.player.currentPlatform !== platform) {
@@ -344,23 +351,18 @@ class DataBus {
             this.player.state = 'stand';
           }
         }
-        break;
+        
+        isOnPlatform = true;
+        break; // 找到平台后就退出循环
       }
     }
     
     // 如果玩家站在平台上，随平台一起移动
-    if (isOnPlatform && !this.player.isJumping && currentPlatformObj) {
+    if (isOnPlatform && !this.player.isJumping) {
       // 玩家跟随平台移动
       this.player.x -= this.platformSpeed;
-    }
-    
-    if (this.player.isJumping) {
-      // 应用重力
-      this.player.velocityY += 0.5;
-      this.player.y += this.player.velocityY;
-      this.player.x += this.player.velocityX;
-    } else if (!isOnPlatform) {
-      // 不在平台上，开始掉落
+    } else if (!isOnPlatform && !this.player.isJumping) {
+      // 玩家不在平台上且没有在跳跃，开始掉落
       this.player.isJumping = true;
       this.player.velocityY = 0;
       this.player.velocityX = 0;
