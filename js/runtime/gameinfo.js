@@ -21,7 +21,7 @@ atlas.src = 'images/Common.png';
 
 // 加载背景图片
 const backgroundImage = createImage();
-backgroundImage.src = 'images/bg.jpg';
+backgroundImage.src = 'images/image_695435480469248.png';
 
 // 加载角色精灵图
 const playerSpriteSheet = createImage();

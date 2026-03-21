@@ -160,7 +160,7 @@ class DataBus {
     for (let i = 0; i < 8; i++) {
       const platform = {
         x: i * (this.basePlatformSize + this.basePlatformGap),
-        y: startY - Math.random() * 50,
+        y: startY + (Math.random() - 0.5) * 3, // 限制初始平台高度波动为±1.5像素
         size: this.basePlatformSize,
         color: this.getRandomColor(),
         type: this.getRandomPlatformType(),
@@ -218,7 +218,7 @@ class DataBus {
     
     const platform = {
       x: lastPlatform.x + platformSize + platformGap + Math.random() * 5, // 减少随机偏移
-      y: lastPlatform.y + (Math.random() - 0.5) * 40, // 减少垂直偏移，让平台更容易到达
+      y: lastPlatform.y + (Math.random() - 0.5) * 3, // 限制垂直偏移为±1.5像素
       size: platformSize,
       color: this.getRandomColor(),
       type: this.getRandomPlatformType(),
@@ -283,10 +283,10 @@ class DataBus {
       this.player.isJumping = true;
       this.player.state = 'jump';
       
-      // 调整跳跃强度与距离的关系，增加跳跃高度以解决平台过高的问题
-      // 最大蓄力时可以跳约1.5个平台距离，并且能够到达较高的平台
-      this.player.velocityY = -power * 0.18; // 垂直速度，控制跳跃高度（增加）
-      this.player.velocityX = power * 0.04; // 水平速度，控制跳跃距离
+      // 优化跳跃参数，参考Box2D横版游戏最佳实践
+      // 降低垂直速度，增加水平控制，让跳跃手感更"飘"更可控
+      this.player.velocityY = -power * 0.15; // 降低垂直速度（从0.18降到0.15）
+      this.player.velocityX = power * 0.05; // 增加水平速度（从0.04增到0.05）
     }
   }
 
@@ -297,38 +297,86 @@ class DataBus {
       return;
     }
     
-    // 先应用重力和移动
+    // 首先检查玩家是否站在平台上（在应用任何移动之前）
+    if (!this.player.isJumping && this.player.currentPlatform) {
+      const platform = this.player.currentPlatform;
+      
+      // 使用胶囊体碰撞检测：检查玩家底部圆形区域是否在平台上
+      const playerCenterX = this.player.x + this.player.size / 2;
+      const playerBottomY = this.player.y + this.player.size;
+      const playerRadius = this.player.size / 2; // 胶囊体底部圆形半径
+      
+      // 检查玩家底部圆形是否与平台相交
+      const platformLeft = platform.x;
+      const platformRight = platform.x + platform.size;
+      const platformTop = platform.y;
+      
+      // 水平方向：玩家中心到平台的最近点
+      const closestX = Math.max(platformLeft, Math.min(playerCenterX, platformRight));
+      const distanceX = Math.abs(playerCenterX - closestX);
+      
+      // 垂直方向：玩家底部到平台顶部的距离
+      const distanceY = playerBottomY - platformTop;
+      
+      // 胶囊体碰撞检测：圆形与平台顶部的碰撞
+      const isOnPlatform = distanceX < playerRadius && 
+                          distanceY >= -2 && distanceY <= 5;
+      
+      if (isOnPlatform) {
+        // 玩家仍然站在平台上，保持位置
+        this.player.y = platform.y - this.player.size;
+        return; // 不需要继续处理
+      } else {
+        // 玩家已经离开平台，开始掉落
+        this.player.isJumping = true;
+        this.player.velocityY = 0;
+        this.player.velocityX = 0;
+        this.player.currentPlatform = null;
+      }
+    }
+    
+    // 应用重力和移动（跳跃或掉落状态）
     if (this.player.isJumping) {
-      // 应用重力
-      this.player.velocityY += 0.5;
+      // 优化重力参数：降低重力加速度，让跳跃手感更好
+      this.player.velocityY += 0.4; // 降低重力（从0.5降到0.4）
       this.player.y += this.player.velocityY;
       this.player.x += this.player.velocityX;
     }
     
-    // 检测与平台的碰撞
-    let isOnPlatform = false;
-    
-    for (const platform of this.platforms) {
-      // 检查玩家是否在平台的水平范围内
-      const playerCenterX = this.player.x + this.player.size / 2;
-      const isInHorizontalRange = playerCenterX >= platform.x && 
-                                    playerCenterX <= platform.x + platform.size;
-      
-      // 检查玩家是否在平台的垂直范围内（落在平台上）
-      const playerBottom = this.player.y + this.player.size;
-      const isInVerticalRange = playerBottom >= platform.y && 
-                                 playerBottom <= platform.y + 20;
-      
-      if (isInHorizontalRange && isInVerticalRange) {
-        // 玩家在平台上
-        if (this.player.isJumping && this.player.velocityY > 0) {
-          // 玩家正在下落且碰到平台，落在平台上
+    // 检测与平台的碰撞（只在跳跃/掉落时）
+    if (this.player.isJumping && this.player.velocityY > 0) {
+      for (const platform of this.platforms) {
+        // 使用胶囊体碰撞检测
+        const playerCenterX = this.player.x + this.player.size / 2;
+        const playerBottomY = this.player.y + this.player.size;
+        const playerRadius = this.player.size / 2;
+        
+        const platformLeft = platform.x;
+        const platformRight = platform.x + platform.size;
+        const platformTop = platform.y;
+        
+        // 水平方向：玩家中心到平台的最近点
+        const closestX = Math.max(platformLeft, Math.min(playerCenterX, platformRight));
+        const distanceX = Math.abs(playerCenterX - closestX);
+        
+        // 垂直方向：玩家底部到平台顶部的距离
+        const distanceY = playerBottomY - platformTop;
+        
+        // 使用连续碰撞检测：检查上一帧到当前帧的路径
+        const prevPlayerBottomY = playerBottomY - this.player.velocityY;
+        
+        // 胶囊体碰撞检测：圆形与平台顶部的碰撞
+        if (distanceX < playerRadius && 
+            prevPlayerBottomY <= platformTop && 
+            playerBottomY >= platformTop) {
+          
+          // 玩家落在平台上
           this.player.isJumping = false;
           this.player.velocityY = 0;
           this.player.velocityX = 0;
           this.player.y = platform.y - this.player.size;
           
-          // 检查是否是新的平台（避免重复加分）
+          // 检查是否是新的平台
           if (this.player.currentPlatform !== platform) {
             this.player.currentPlatform = platform;
             
@@ -342,7 +390,7 @@ class DataBus {
             // 增加分数
             this.score++;
             
-            // 增加平台速度，随分数增加而平滑增加（降低增长速度）
+            // 增加平台速度
             this.platformSpeed = 1 + Math.min(this.score * 0.005, 3);
             
             // 短暂延迟后恢复站立状态
@@ -350,21 +398,13 @@ class DataBus {
               this.player.state = 'stand';
             }, 300);
           } else {
-            // 同一个平台，不加分，直接恢复站立状态
+            // 同一个平台
             this.player.state = 'stand';
           }
+          
+          break; // 找到平台后退出循环
         }
-        
-        isOnPlatform = true;
-        break; // 找到平台后就退出循环
       }
-    }
-    
-    // 如果玩家不在平台上且没有在跳跃，开始掉落
-    if (!isOnPlatform && !this.player.isJumping) {
-      this.player.isJumping = true;
-      this.player.velocityY = 0;
-      this.player.velocityX = 0;
     }
     
     // 检测是否掉落

@@ -11,34 +11,14 @@ class Music {
 
     if (window.isWechatGame) {
       this.bgmAudio = wx.createInnerAudioContext();
-      this.shootAudio = wx.createInnerAudioContext();
-      this.boomAudio = wx.createInnerAudioContext();
       this.bgmAudio.loop = true; // 背景音乐循环播放
       this.bgmAudio.autoplay = true; // 背景音乐自动播放
       this.bgmAudio.src = 'audio/bgm.mp3';
-      this.shootAudio.src = 'audio/bullet.mp3';
-      this.boomAudio.src = 'audio/boom.mp3';
     } else if (typeof window !== 'undefined') {
       // 浏览器环境
       this.bgmAudio = new Audio('audio/bgm.mp3');
-      this.shootAudio = new Audio('audio/bullet.mp3');
-      this.boomAudio = new Audio('audio/boom.mp3');
       this.bgmAudio.loop = true;
       this.bgmAudio.autoplay = true;
-    }
-  }
-
-
-
-  playShoot() {
-    this.shootAudio.currentTime = 0;
-    this.shootAudio.play();
-  }
-
-  playExplosion() {
-    if (this.boomAudio) {
-      this.boomAudio.currentTime = 0;
-      this.boomAudio.play();
     }
   }
 }
