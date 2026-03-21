@@ -102,9 +102,9 @@ class DataBus {
       state: 'stand',
     };
     this.platforms = [];
-    this.platformSpeed = 2;
-    this.basePlatformGap = 80;
-    this.basePlatformSize = 60;
+    this.platformSpeed = 1; // 降低初始速度
+    this.basePlatformGap = 100; // 增加间距
+    this.basePlatformSize = 80; // 增大平台
     this.collectedBeans = [];
     this.beanPieces = 0;
     this.items = {

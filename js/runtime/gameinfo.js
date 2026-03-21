@@ -6,6 +6,10 @@ if (typeof TinyEmitter === 'undefined') {
 // 创建Emitter别名，兼容现有代码
 const Emitter = TinyEmitter;
 
+// 定义屏幕尺寸常量
+const SCREEN_WIDTH = 375;
+const SCREEN_HEIGHT = 667;
+
 // 创建图片的通用函数
 function createImage() {
   if (window.isWechatGame) {
