@@ -10,6 +10,11 @@ app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
+// 处理根路径，重定向到 game.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'game.html'));
+});
+
 // 启动服务器
 const PORT = process.env.PORT || 80;
 app.listen(PORT, () => {
