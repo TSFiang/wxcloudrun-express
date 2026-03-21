@@ -1,6 +1,6 @@
 // 假设Pool类在全局作用域中可用
 
-let instance;
+let databusInstance;
 
 /**
  * 全局状态管理器
@@ -79,9 +79,9 @@ class DataBus {
 
   constructor() {
     // 确保单例模式
-    if (instance) return instance;
+    if (databusInstance) return databusInstance;
 
-    instance = this;
+    databusInstance = this;
   }
 
   // 重置游戏状态

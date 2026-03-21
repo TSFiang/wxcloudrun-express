@@ -1,13 +1,13 @@
-let instance;
+let musicInstance;
 
 /**
  * 统一的音效管理器
  */
 class Music {
   constructor() {
-    if (instance) return instance;
+    if (musicInstance) return musicInstance;
 
-    instance = this;
+    musicInstance = this;
 
     if (window.isWechatGame) {
       this.bgmAudio = wx.createInnerAudioContext();
