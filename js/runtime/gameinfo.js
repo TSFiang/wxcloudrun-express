@@ -6,10 +6,6 @@ if (typeof TinyEmitter === 'undefined') {
 // 创建Emitter别名，兼容现有代码
 const Emitter = TinyEmitter;
 
-// 定义屏幕尺寸常量
-const SCREEN_WIDTH = 375;
-const SCREEN_HEIGHT = 667;
-
 // 创建图片的通用函数
 function createImage() {
   if (window.isWechatGame) {
@@ -213,12 +209,12 @@ class GameInfo extends Emitter {
     const settings = databus.settings;
     
     // 绘制背景图片
-    ctx.drawImage(backgroundImage, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.drawImage(backgroundImage, 0, 0, 375, 667);
     
     // 绘制标题
     this.setFont(ctx, 36, '#ffffff');
     ctx.textAlign = 'center';
-    ctx.fillText('设置', SCREEN_WIDTH / 2, 80);
+    ctx.fillText('设置', 375 / 2, 80);
     
     // 绘制设置选项
     const options = [
@@ -244,20 +240,20 @@ class GameInfo extends Emitter {
       
       if (typeof option.value === 'boolean') {
         // 布尔值选项（开关）
-        ctx.fillText(option.value ? '开' : '关', SCREEN_WIDTH - 50, y);
+        ctx.fillText(option.value ? '开' : '关', 375 - 50, y);
       } else {
         // 其他选项（难度、画质）
         ctx.fillText(option.value === 'easy' ? '简单' : 
                     option.value === 'normal' ? '普通' : 
                     option.value === 'hard' ? '困难' : 
                     option.value === 'high' ? '高' : 
-                    option.value === 'medium' ? '中' : '低', SCREEN_WIDTH - 50, y);
+                    option.value === 'medium' ? '中' : '低', 375 - 50, y);
       }
       
       // 绘制选项区域
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
-      ctx.strokeRect(30, y - 20, SCREEN_WIDTH - 60, 40);
+      ctx.strokeRect(30, y - 20, 375 - 60, 40);
     });
     
     // 绘制返回按钮
@@ -268,16 +264,16 @@ class GameInfo extends Emitter {
   renderPaused(ctx) {
     // 绘制半透明遮罩
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.fillRect(0, 0, 375, 667);
     
     // 绘制暂停文字
     this.setFont(ctx, 36, '#ffffff');
     ctx.textAlign = 'center';
-    ctx.fillText('游戏暂停', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 50);
+    ctx.fillText('游戏暂停', 375 / 2, 667 / 2 - 50);
     
     // 绘制提示文字
     this.setFont(ctx, 20, '#ffffff');
-    ctx.fillText('点击暂停按钮继续游戏', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 10);
+    ctx.fillText('点击暂停按钮继续游戏', 375 / 2, 667 / 2 + 10);
     
     ctx.textAlign = 'left';
   }
@@ -289,7 +285,7 @@ class GameInfo extends Emitter {
     
     // 绘制半透明遮罩
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.fillRect(0, 0, 375, 667);
     
     // 绘制教程文本
     this.setFont(ctx, 24, '#ffffff');
@@ -298,21 +294,21 @@ class GameInfo extends Emitter {
     switch (tutorialStep) {
       case 0:
         // 第一步：介绍游戏
-        ctx.fillText('欢迎来到拼豆跳跳消！', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60);
-        ctx.fillText('长按屏幕蓄力，松开跳跃', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-        ctx.fillText('点击屏幕继续', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 60);
+        ctx.fillText('欢迎来到拼豆跳跳消！', 375 / 2, 667 / 2 - 60);
+        ctx.fillText('长按屏幕蓄力，松开跳跃', 375 / 2, 667 / 2);
+        ctx.fillText('点击屏幕继续', 375 / 2, 667 / 2 + 60);
         break;
       case 1:
         // 第二步：介绍收集机制
-        ctx.fillText('跳到平台上收集拼豆', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60);
-        ctx.fillText('收集3个相同颜色的拼豆可以消除', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-        ctx.fillText('点击屏幕继续', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 60);
+        ctx.fillText('跳到平台上收集拼豆', 375 / 2, 667 / 2 - 60);
+        ctx.fillText('收集3个相同颜色的拼豆可以消除', 375 / 2, 667 / 2);
+        ctx.fillText('点击屏幕继续', 375 / 2, 667 / 2 + 60);
         break;
       case 2:
         // 第三步：介绍道具系统
-        ctx.fillText('收集3个不同颜色的拼豆', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 60);
-        ctx.fillText('可以随机获得一个道具', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-        ctx.fillText('点击屏幕开始游戏', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 60);
+        ctx.fillText('收集3个不同颜色的拼豆', 375 / 2, 667 / 2 - 60);
+        ctx.fillText('可以随机获得一个道具', 375 / 2, 667 / 2);
+        ctx.fillText('点击屏幕开始游戏', 375 / 2, 667 / 2 + 60);
         break;
     }
   }
@@ -320,18 +316,18 @@ class GameInfo extends Emitter {
   // 渲染主界面
   renderMenu(ctx) {
     // 绘制背景图片
-    ctx.drawImage(backgroundImage, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.drawImage(backgroundImage, 0, 0, 375, 667);
 
     // 绘制标题
     this.setFont(ctx, 48, '#ffffff');
     ctx.textAlign = 'center';
-    ctx.fillText('拼豆跳跳消', SCREEN_WIDTH / 2, 150);
+    ctx.fillText('拼豆跳跳消', 375 / 2, 150);
 
     // 绘制游戏说明
     this.setFont(ctx, 16, '#ffffff');
-    ctx.fillText('长按蓄力跳跃', SCREEN_WIDTH / 2, 200);
-    ctx.fillText('收集相同颜色拼豆消除', SCREEN_WIDTH / 2, 230);
-    ctx.fillText('解锁拼豆图鉴', SCREEN_WIDTH / 2, 260);
+    ctx.fillText('长按蓄力跳跃', 375 / 2, 200);
+    ctx.fillText('收集相同颜色拼豆消除', 375 / 2, 230);
+    ctx.fillText('解锁拼豆图鉴', 375 / 2, 260);
 
     // 绘制按钮
     this.drawButton(ctx, '开始游戏', this.btnAreas.startGame);
@@ -352,21 +348,21 @@ class GameInfo extends Emitter {
     const databus = GameGlobal.databus;
     
     // 绘制背景图片
-    ctx.drawImage(backgroundImage, 0, 0, (window.SCREEN_WIDTH || 375), (window.SCREEN_HEIGHT || 667));
+    ctx.drawImage(backgroundImage, 0, 0, (window.375 || 375), (window.667 || 667));
     
     // 显示倒计时
     if (databus.gameStartTime && Date.now() < databus.gameStartTime) {
       const remainingTime = Math.ceil((databus.gameStartTime - Date.now()) / 1000);
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-      ctx.fillRect(0, 0, (window.SCREEN_WIDTH || 375), (window.SCREEN_HEIGHT || 667));
+      ctx.fillRect(0, 0, (window.375 || 375), (window.667 || 667));
       
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
       this.setFont(ctx, 48, '#ffffff');
-      ctx.fillText(remainingTime.toString(), (window.SCREEN_WIDTH || 375) / 2, (window.SCREEN_HEIGHT || 667) / 2);
+      ctx.fillText(remainingTime.toString(), (window.375 || 375) / 2, (window.667 || 667) / 2);
       
       this.setFont(ctx, 20, '#ffffff');
-      ctx.fillText('准备开始...', (window.SCREEN_WIDTH || 375) / 2, (window.SCREEN_HEIGHT || 667) / 2 + 40);
+      ctx.fillText('准备开始...', (window.375 || 375) / 2, (window.667 || 667) / 2 + 40);
     }
     
     // 绘制顶部信息栏
@@ -408,7 +404,7 @@ class GameInfo extends Emitter {
     // 绘制拼豆数量
     this.setFont(ctx, 16, '#ffffff');
     ctx.textAlign = 'center';
-    ctx.fillText(`拼豆: ${databus.beanPieces}`, (window.SCREEN_WIDTH || 375) / 2, 40);
+    ctx.fillText(`拼豆: ${databus.beanPieces}`, (window.375 || 375) / 2, 40);
   }
 
   // 渲染平台
@@ -488,16 +484,16 @@ class GameInfo extends Emitter {
     
     // 绘制蓄力条背景
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.fillRect(SCREEN_WIDTH / 2 - 100, 70, 200, 20);
+    ctx.fillRect(375 / 2 - 100, 70, 200, 20);
     
     // 绘制蓄力条
     ctx.fillStyle = '#ff6b6b';
-    ctx.fillRect(SCREEN_WIDTH / 2 - 100, 70, (power / player.maxPower) * 200, 20);
+    ctx.fillRect(375 / 2 - 100, 70, (power / player.maxPower) * 200, 20);
     
     // 绘制蓄力值
     this.setFont(ctx, 14, '#333333');
     ctx.textAlign = 'center';
-    ctx.fillText(`${Math.floor(power)}%`, SCREEN_WIDTH / 2, 85);
+    ctx.fillText(`${Math.floor(power)}%`, 375 / 2, 85);
   }
 
   // 渲染收集的拼豆
@@ -507,10 +503,10 @@ class GameInfo extends Emitter {
     const maxCollected = databus.maxCollected;
     
     // 绘制收集栏
-    const barWidth = SCREEN_WIDTH - 40;
+    const barWidth = 375 - 40;
     const barHeight = 50;
     const barX = 20;
-    const barY = SCREEN_HEIGHT - 100;
+    const barY = 667 - 100;
     
     // 绘制栏背景
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
@@ -587,22 +583,22 @@ class GameInfo extends Emitter {
   // 渲染游戏结束
   renderGameOver(ctx) {
     // 绘制背景图片
-    ctx.drawImage(backgroundImage, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.drawImage(backgroundImage, 0, 0, 375, 667);
     
     // 绘制半透明遮罩
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.fillRect(0, 0, 375, 667);
 
     // 绘制标题
     this.setFont(ctx, 36, '#ffffff');
     ctx.textAlign = 'center';
-    ctx.fillText('游戏结束', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 100);
+    ctx.fillText('游戏结束', 375 / 2, 667 / 2 - 100);
 
     // 绘制分数
     this.setFont(ctx, 24, '#ffffff');
-    ctx.fillText(`最终得分: ${GameGlobal.databus.score}`, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 50);
-    ctx.fillText(`拼豆数量: ${GameGlobal.databus.beanPieces}`, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 20);
-    ctx.fillText(`历史最高分: ${GameGlobal.databus.highScore}`, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 10);
+    ctx.fillText(`最终得分: ${GameGlobal.databus.score}`, 375 / 2, 667 / 2 - 50);
+    ctx.fillText(`拼豆数量: ${GameGlobal.databus.beanPieces}`, 375 / 2, 667 / 2 - 20);
+    ctx.fillText(`历史最高分: ${GameGlobal.databus.highScore}`, 375 / 2, 667 / 2 + 10);
 
     // 绘制按钮
     this.drawButton(ctx, '再玩一次', this.btnAreas.restart);
@@ -618,12 +614,12 @@ class GameInfo extends Emitter {
   // 渲染图鉴
   renderCollection(ctx) {
     // 绘制背景图片
-    ctx.drawImage(backgroundImage, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.drawImage(backgroundImage, 0, 0, 375, 667);
 
     // 绘制标题
     this.setFont(ctx, 36, '#ffffff');
     ctx.textAlign = 'center';
-    ctx.fillText('拼豆图鉴', SCREEN_WIDTH / 2, 80);
+    ctx.fillText('拼豆图鉴', 375 / 2, 80);
 
     // 绘制图鉴项目
     const databus = GameGlobal.databus;
@@ -644,11 +640,11 @@ class GameInfo extends Emitter {
       
       // 绘制图鉴项
       ctx.fillStyle = collection.unlocked ? 'rgba(255, 255, 255, 0.8)' : 'rgba(200, 200, 200, 0.5)';
-      ctx.fillRect(x, y, SCREEN_WIDTH - 100, 60);
+      ctx.fillRect(x, y, 375 - 100, 60);
       
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
-      ctx.strokeRect(x, y, SCREEN_WIDTH - 100, 60);
+      ctx.strokeRect(x, y, 375 - 100, 60);
       
       // 绘制图标和名称
       this.setFont(ctx, 24, '#333333');
@@ -658,7 +654,7 @@ class GameInfo extends Emitter {
       // 绘制进度
       this.setFont(ctx, 16, '#333333');
       ctx.textAlign = 'right';
-      ctx.fillText(`${collection.pieces}/${collection.total}`, SCREEN_WIDTH - 70, y + 40);
+      ctx.fillText(`${collection.pieces}/${collection.total}`, 375 - 70, y + 40);
     });
 
     // 绘制返回按钮
@@ -690,18 +686,18 @@ class GameInfo extends Emitter {
   // 绘制底部广告占位
   drawBannerAd(ctx) {
     const adHeight = 60;
-    const adY = SCREEN_HEIGHT - adHeight;
+    const adY = 667 - adHeight;
     
     ctx.fillStyle = '#e0e0e0';
-    ctx.fillRect(0, adY, SCREEN_WIDTH, adHeight);
+    ctx.fillRect(0, adY, 375, adHeight);
     
     ctx.strokeStyle = '#999999';
     ctx.lineWidth = 1;
-    ctx.strokeRect(0, adY, SCREEN_WIDTH, adHeight);
+    ctx.strokeRect(0, adY, 375, adHeight);
     
     this.setFont(ctx, 14, '#666666');
     ctx.textAlign = 'center';
-    ctx.fillText('广告位', SCREEN_WIDTH / 2, adY + adHeight / 2 + 5);
+    ctx.fillText('广告位', 375 / 2, adY + adHeight / 2 + 5);
   }
 
   // 处理触摸开始
@@ -763,7 +759,7 @@ class GameInfo extends Emitter {
     ];
     
     options.forEach(option => {
-      if (y >= option.y - 20 && y <= option.y + 20 && x >= 30 && x <= SCREEN_WIDTH - 30) {
+      if (y >= option.y - 20 && y <= option.y + 20 && x >= 30 && x <= 375 - 30) {
         if (typeof settings[option.key] === 'boolean') {
           // 切换布尔值选项
           settings[option.key] = !settings[option.key];
