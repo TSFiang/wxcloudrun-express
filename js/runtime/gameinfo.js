@@ -150,15 +150,27 @@ class GameInfo extends Emitter {
       wx.onTouchStart(this.touchStartHandler.bind(this));
       wx.onTouchEnd(this.touchEndHandler.bind(this));
       wx.onTouchMove(this.touchMoveHandler.bind(this));
-    } else if (typeof window !== 'undefined' && window.canvas) {
-      // 浏览器环境
-      window.canvas.addEventListener('touchstart', this.touchStartHandler.bind(this));
-      window.canvas.addEventListener('touchend', this.touchEndHandler.bind(this));
-      window.canvas.addEventListener('touchmove', this.touchMoveHandler.bind(this));
-      // 同时支持鼠标事件
-      window.canvas.addEventListener('mousedown', this.mouseDownHandler.bind(this));
-      window.canvas.addEventListener('mouseup', this.mouseUpHandler.bind(this));
-      window.canvas.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
+    } else if (typeof window !== 'undefined') {
+      // 浏览器环境 - 延迟绑定事件，确保canvas已初始化
+      const bindEvents = () => {
+        const canvasElement = window.canvas || document.getElementById('gameCanvas');
+        if (canvasElement) {
+          canvasElement.addEventListener('touchstart', this.touchStartHandler.bind(this));
+          canvasElement.addEventListener('touchend', this.touchEndHandler.bind(this));
+          canvasElement.addEventListener('touchmove', this.touchMoveHandler.bind(this));
+          // 同时支持鼠标事件
+          canvasElement.addEventListener('mousedown', this.mouseDownHandler.bind(this));
+          canvasElement.addEventListener('mouseup', this.mouseUpHandler.bind(this));
+          canvasElement.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
+          console.log('Touch events bound successfully');
+        } else {
+          console.warn('Canvas not found, retrying in 100ms...');
+          setTimeout(bindEvents, 100);
+        }
+      };
+      
+      // 立即尝试绑定，如果canvas不存在则延迟重试
+      bindEvents();
     }
   }
 
