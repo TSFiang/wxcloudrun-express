@@ -6,13 +6,6 @@ if (typeof TinyEmitter === 'undefined') {
 // 创建Emitter别名，兼容现有代码
 const Emitter = TinyEmitter;
 
-// 引用全局变量（从render.js中定义）
-const SCREEN_WIDTH = window.SCREEN_WIDTH || 375;
-const SCREEN_HEIGHT = window.SCREEN_HEIGHT || 667;
-const SCALE_X = window.SCALE_X || 1;
-const SCALE_Y = window.SCALE_Y || 1;
-const SCALE = window.SCALE || 1;
-
 // 创建图片的通用函数
 function createImage() {
   if (window.isWechatGame) {
