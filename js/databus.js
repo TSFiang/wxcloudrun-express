@@ -1,118 +1,172 @@
-// 假设Pool类在全局作用域中可用
-
 let databusInstance;
 
 /**
- * 全局状态管理器
- * 负责管理游戏的状态，包括跳跃、收集、拼豆和游戏状态等
+ * 全局状态管理器（单例模式）
+ * @class DataBus
+ * @description 负责管理游戏的所有状态，包括玩家、平台、收集系统、道具系统等
+ * @example
+ * const databus = new DataBus();
+ * databus.startGame();
  */
 class DataBus {
-  // 游戏状态
-  gameState = 'menu'; // 游戏状态：menu, playing, gameOver, success, collection, tutorial, paused
-  isPaused = false; // 游戏是否暂停
+  /** @type {string} 当前游戏状态 */
+  gameState = 'menu';
   
-  // 游戏数据
-  frame = 0; // 当前帧数
-  score = 0; // 当前分数
-  highScore = 0; // 最高分
-  time = 0; // 游戏时间
-  isGameStarted = false; // 游戏是否开始移动
+  /** @type {boolean} 游戏是否暂停 */
+  isPaused = false;
   
-  // 教程相关
-  isFirstPlay = true; // 是否首次游戏
-  tutorialStep = 0; // 教程步骤
+  /** @type {number} 当前帧数 */
+  frame = 0;
   
-  // showTutorial 通过 getter 从 settings 获取，确保设置界面修改立即生效
+  /** @type {number} 当前分数 */
+  score = 0;
   
-  // 设置相关
+  /** @type {number} 最高分 */
+  highScore = 0;
+  
+  /** @type {number} 游戏时间（秒） */
+  time = 0;
+  
+  /** @type {boolean} 游戏是否开始移动 */
+  isGameStarted = false;
+  
+  /** @type {boolean} 是否首次游戏 */
+  isFirstPlay = true;
+  
+  /** @type {number} 教程步骤（0-2） */
+  tutorialStep = 0;
+  
+  /** @type {Object} 游戏设置 */
   settings = {
-    sound: true, // 声音开关
-    music: true, // 背景音乐开关
-    vibration: true, // 振动开关
-    showTutorial: true, // 教程开关
-    difficulty: 'normal', // 难度：easy, normal, hard
-    quality: 'high' // 画质：high, medium, low
+    sound: true,
+    music: true,
+    vibration: true,
+    showTutorial: true,
+    difficulty: 'normal',
+    quality: 'high',
+    showDebug: false,
+    fpsLimit: 60
   };
   
-  // 跳跃相关
+  /** @type {Object} 玩家状态 */
   player = {
-    x: 0, // 玩家x坐标
-    y: 0, // 玩家y坐标
-    size: 30, // 玩家大小
-    velocityY: 0, // 垂直速度
-    velocityX: 0, // 水平速度
-    isJumping: false, // 是否正在跳跃
-    power: 0, // 蓄力值
-    maxPower: 100, // 最大蓄力值
-    state: 'stand', // 玩家状态：stand, jump, collect, fail
-    currentPlatform: null, // 当前所在平台
+    x: 0,
+    y: 0,
+    size: 30,
+    velocityY: 0,
+    velocityX: 0,
+    isJumping: false,
+    power: 0,
+    maxPower: 100,
+    state: 'stand',
+    currentPlatform: null,
   };
   
-  // 流畅感优化参数（参考业界最佳实践）
-  coyoteTime = 0.12; // 土狼时间：离开平台后仍允许跳跃的窗口（秒）
-  coyoteTimer = 0; // 土狼时间计时器
-  inputBufferTime = 0.1; // 输入缓冲窗口（秒）
-  jumpBufferTimer = 0; // 跳跃输入缓冲计时器
-  jumpCutOff = 0.5; // 短跳速度阈值
-  fallAcceleration = 2.5; // 下落加速度倍率
-  hitStopDuration = 0.08; // 命中停顿时间（秒）
-  isHitStop = false; // 是否处于命中停顿状态
-  hitStopTimer = 0; // 命中停顿计时器
+  /** @type {number} 土狼时间（秒）- 离开平台后仍允许跳跃的窗口 */
+  coyoteTime = 0.12;
   
-  // 平台相关
-  platforms = []; // 平台数组
-  platformSpeed = 1; // 平台移动速度（降低初始速度）
-  basePlatformGap = 100; // 基础平台间距（增加间距，给玩家更多时间）
-  basePlatformSize = 80; // 基础平台大小（增大平台，更容易跳中）
+  /** @type {number} 土狼时间计时器 */
+  coyoteTimer = 0;
   
-  // 收集相关
-  collectedBeans = []; // 收集的拼豆
-  maxCollected = 6; // 最大收集数量
+  /** @type {number} 输入缓冲窗口（秒） */
+  inputBufferTime = 0.1;
   
-  // 拼豆系统
-  beanPieces = 0; // 拼豆碎片数量
+  /** @type {number} 跳跃输入缓冲计时器 */
+  jumpBufferTimer = 0;
+  
+  /** @type {number} 短跳速度阈值 */
+  jumpCutOff = 0.5;
+  
+  /** @type {number} 下落加速度倍率 */
+  fallAcceleration = 2.5;
+  
+  /** @type {number} 命中停顿时间（秒） */
+  hitStopDuration = 0.08;
+  
+  /** @type {boolean} 是否处于命中停顿状态 */
+  isHitStop = false;
+  
+  /** @type {number} 命中停顿计时器 */
+  hitStopTimer = 0;
+  
+  /** @type {Array} 平台数组 */
+  platforms = [];
+  
+  /** @type {number} 平台移动速度 */
+  platformSpeed = 1;
+  
+  /** @type {number} 基础平台间距 */
+  basePlatformGap = 100;
+  
+  /** @type {number} 基础平台大小 */
+  basePlatformSize = 80;
+  
+  /** @type {Array<string>} 收集的拼豆颜色数组 */
+  collectedBeans = [];
+  
+  /** @type {number} 最大收集数量 */
+  maxCollected = 6;
+  
+  /** @type {number} 拼豆碎片数量 */
+  beanPieces = 0;
+  
+  /** @type {Object} 拼豆图鉴 */
   beanCollection = {
-    animals: { unlocked: false, pieces: 0, total: 8 },
-    desserts: { unlocked: false, pieces: 0, total: 12 },
-    stars: { unlocked: false, pieces: 0, total: 16 },
-    hearts: { unlocked: false, pieces: 0, total: 12 },
-    cartoons: { unlocked: false, pieces: 0, total: 10 }
+    animals: { unlocked: false, pieces: 0, total: 8, unlockAt: 8 },
+    desserts: { unlocked: false, pieces: 0, total: 12, unlockAt: 12 },
+    stars: { unlocked: false, pieces: 0, total: 16, unlockAt: 16 },
+    hearts: { unlocked: false, pieces: 0, total: 20, unlockAt: 20 },
+    cartoons: { unlocked: false, pieces: 0, total: 25, unlockAt: 25 }
   };
   
-  // 道具系统
+  /** @type {Object} 道具数量 */
   items = {
-    shield: 0, // 护盾数量
-    rainbow: 0, // 彩虹数量
-    doubleScore: 0, // 双倍分数数量
-    extraBean: 0 // 额外拼豆数量
+    shield: 0,
+    rainbow: 0,
+    doubleScore: 0,
+    extraBean: 0
   };
   
-  // 道具效果状态
-  hasShield = false; // 是否有护盾保护
-  doubleScoreActive = false; // 双倍分数是否激活
-  doubleScoreEndTime = 0; // 双倍分数结束时间
+  /** @type {boolean} 是否有护盾保护 */
+  hasShield = false;
   
-  // 其他
-  animations = []; // 存储动画
-  pool = new Pool(); // 初始化对象池
+  /** @type {boolean} 双倍分数是否激活 */
+  doubleScoreActive = false;
+  
+  /** @type {number} 双倍分数结束时间戳 */
+  doubleScoreEndTime = 0;
+  
+  /** @type {Array} 动画数组 */
+  animations = [];
+  
+  /** @type {Pool} 对象池实例 */
+  pool = new Pool();
 
   constructor() {
     if (databusInstance) return databusInstance;
     databusInstance = this;
   }
   
-  // showTutorial 通过 getter 获取
-  // 首次游戏必须显示教程，之后根据设置决定
+  /**
+   * 获取是否显示教程
+   * @returns {boolean} 首次游戏或设置开启时返回true
+   */
   get showTutorial() {
     return this.isFirstPlay || this.settings.showTutorial;
   }
   
-  // setter 只修改 settings，不影响 isFirstPlay
+  /**
+   * 设置是否显示教程
+   * @param {boolean} value - 是否显示教程
+   */
   set showTutorial(value) {
     this.settings.showTutorial = value;
   }
 
-  // 重置游戏状态
+  /**
+   * 重置游戏状态到初始值
+   * @description 清空分数、平台、收集栏等，但保留道具
+   */
   reset() {
     this.frame = 0;
     this.score = 0;

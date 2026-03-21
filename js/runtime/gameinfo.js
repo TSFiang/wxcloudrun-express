@@ -223,26 +223,28 @@ class GameInfo extends Emitter {
       { key: 'vibration', label: '振动', value: settings.vibration },
       { key: 'showTutorial', label: '新手教程', value: settings.showTutorial },
       { key: 'difficulty', label: '难度', value: settings.difficulty },
-      { key: 'quality', label: '画质', value: settings.quality }
+      { key: 'quality', label: '画质', value: settings.quality },
+      { key: 'fpsLimit', label: '帧率上限', value: settings.fpsLimit },
+      { key: 'showDebug', label: '调试信息', value: settings.showDebug }
     ];
     
     options.forEach((option, index) => {
-      const y = 150 + index * 60;
+      const y = 130 + index * 55;
       
       // 绘制选项标签（黑色字体）
-      this.setFont(ctx, 20, '#000000');
+      this.setFont(ctx, 18, '#000000');
       ctx.textAlign = 'left';
       ctx.fillText(option.label, 50, y);
       
       // 绘制选项值（黑色字体）
-      this.setFont(ctx, 20, '#000000');
+      this.setFont(ctx, 18, '#000000');
       ctx.textAlign = 'right';
       
       if (typeof option.value === 'boolean') {
-        // 布尔值选项（开关）
         ctx.fillText(option.value ? '开' : '关', 375 - 50, y);
+      } else if (option.key === 'fpsLimit') {
+        ctx.fillText(option.value + ' FPS', 375 - 50, y);
       } else {
-        // 其他选项（难度、画质）
         ctx.fillText(option.value === 'easy' ? '简单' : 
                     option.value === 'normal' ? '普通' : 
                     option.value === 'hard' ? '困难' : 
@@ -877,49 +879,96 @@ class GameInfo extends Emitter {
     // 绘制标题
     this.setFont(ctx, 36, '#ffffff');
     ctx.textAlign = 'center';
-    ctx.fillText('拼豆图鉴', 375 / 2, 80);
+    ctx.fillText('拼豆图鉴', 375 / 2, 50);
+    
+    // 绘制当前碎片总数
+    const databus = GameGlobal.databus;
+    this.setFont(ctx, 16, '#FFD700');
+    ctx.fillText(`当前碎片: ${databus.beanPieces}`, 375 / 2, 80);
+    
+    // 绘制获取说明
+    this.setFont(ctx, 12, '#cccccc');
+    ctx.fillText('消除3个相同颜色拼豆可获得碎片', 375 / 2, 100);
 
     // 绘制图鉴项目
-    const databus = GameGlobal.databus;
     const collections = databus.beanCollection;
     
     const items = [
-      { key: 'animals', name: '小动物', icon: '🐶' },
-      { key: 'desserts', name: '甜品', icon: '🍰' },
-      { key: 'stars', name: '星星', icon: '⭐' },
-      { key: 'hearts', name: '爱心', icon: '❤️' },
-      { key: 'cartoons', name: '卡通', icon: '🎨' }
+      { key: 'animals', name: '小动物', icon: '🐶', unlockAt: 8 },
+      { key: 'desserts', name: '甜品', icon: '🍰', unlockAt: 12 },
+      { key: 'stars', name: '星星', icon: '⭐', unlockAt: 16 },
+      { key: 'hearts', name: '爱心', icon: '❤️', unlockAt: 20 },
+      { key: 'cartoons', name: '卡通', icon: '🎨', unlockAt: 25 }
     ];
     
     items.forEach((item, index) => {
       const collection = collections[item.key];
-      const x = 50;
-      const y = 150 + index * 80;
+      const x = 30;
+      const y = 125 + index * 95;
+      const width = 375 - 60;
+      const height = 85;
       
-      // 绘制图鉴项
-      ctx.fillStyle = collection.unlocked ? 'rgba(255, 255, 255, 0.8)' : 'rgba(200, 200, 200, 0.5)';
-      ctx.fillRect(x, y, 375 - 100, 60);
+      // 绘制图鉴项背景
+      if (collection.unlocked) {
+        ctx.fillStyle = 'rgba(100, 200, 100, 0.3)';
+      } else if (databus.beanPieces >= item.unlockAt - 5) {
+        // 接近解锁时显示黄色提示
+        ctx.fillStyle = 'rgba(255, 200, 100, 0.3)';
+      } else {
+        ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
+      }
+      ctx.fillRect(x, y, width, height);
       
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = collection.unlocked ? '#4CAF50' : '#666666';
       ctx.lineWidth = 2;
-      ctx.strokeRect(x, y, 375 - 100, 60);
+      ctx.strokeRect(x, y, width, height);
       
-      // 绘制图标和名称
-      this.setFont(ctx, 24, '#333333');
+      // 绘制图标
+      ctx.font = '32px Arial';
       ctx.textAlign = 'left';
-      ctx.fillText(`${item.icon} ${item.name}`, x + 20, y + 40);
+      ctx.fillText(item.icon, x + 15, y + 45);
       
-      // 绘制进度
-      this.setFont(ctx, 16, '#333333');
+      // 绘制名称
+      this.setFont(ctx, 20, collection.unlocked ? '#ffffff' : '#999999');
+      ctx.fillText(item.name, x + 60, y + 35);
+      
+      // 绘制进度条背景
+      const progressX = x + 60;
+      const progressY = y + 50;
+      const progressWidth = width - 80;
+      const progressHeight = 12;
+      
+      ctx.fillStyle = 'rgba(50, 50, 50, 0.5)';
+      ctx.fillRect(progressX, progressY, progressWidth, progressHeight);
+      
+      // 绘制进度条
+      const progress = Math.min(databus.beanPieces / item.unlockAt, 1);
+      ctx.fillStyle = collection.unlocked ? '#4CAF50' : '#FFD700';
+      ctx.fillRect(progressX, progressY, progressWidth * progress, progressHeight);
+      
+      // 绘制进度条边框
+      ctx.strokeStyle = '#666666';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(progressX, progressY, progressWidth, progressHeight);
+      
+      // 绘制解锁条件
+      this.setFont(ctx, 12, '#cccccc');
       ctx.textAlign = 'right';
-      ctx.fillText(`${collection.pieces}/${collection.total}`, 375 - 70, y + 40);
+      if (collection.unlocked) {
+        ctx.fillText('已解锁 ✓', x + width - 10, y + 35);
+      } else {
+        const remaining = item.unlockAt - databus.beanPieces;
+        ctx.fillText(`还需 ${remaining} 碎片`, x + width - 10, y + 35);
+      }
+      
+      // 绘制碎片数量
+      this.setFont(ctx, 10, '#999999');
+      ctx.textAlign = 'right';
+      ctx.fillText(`${Math.min(databus.beanPieces, item.unlockAt)}/${item.unlockAt}`, x + width - 10, y + 75);
     });
 
     // 绘制返回按钮
     this.drawButton(ctx, '返回', this.btnAreas.backToMenu);
-
-    // 绘制底部广告占位
-    this.drawBannerAd(ctx);
 
     ctx.textAlign = 'left';
   }
@@ -1025,14 +1074,16 @@ class GameInfo extends Emitter {
       return;
     }
     
-    // 检查是否点击了设置选项
+    // 检查是否点击了设置选项（与渲染顺序一致）
     const options = [
-      { key: 'music', y: 150 },
-      { key: 'sound', y: 210 },
-      { key: 'vibration', y: 270 },
-      { key: 'showTutorial', y: 330 },
-      { key: 'difficulty', y: 390 },
-      { key: 'quality', y: 450 }
+      { key: 'music', y: 130 },
+      { key: 'sound', y: 185 },
+      { key: 'vibration', y: 240 },
+      { key: 'showTutorial', y: 295 },
+      { key: 'difficulty', y: 350 },
+      { key: 'quality', y: 405 },
+      { key: 'fpsLimit', y: 460 },
+      { key: 'showDebug', y: 515 }
     ];
     
     let clicked = false;
@@ -1068,6 +1119,15 @@ class GameInfo extends Emitter {
             settings.quality = settings.quality === 'high' ? 'medium' : 
                                settings.quality === 'medium' ? 'low' : 'high';
             console.log(`Changed quality to ${settings.quality}`);
+          } else if (option.key === 'fpsLimit') {
+            // 循环切换帧率上限：60 <-> 120
+            settings.fpsLimit = settings.fpsLimit === 60 ? 120 : 60;
+            console.log(`Changed fpsLimit to ${settings.fpsLimit}`);
+            
+            // 通知 Main 更新帧率
+            if (GameGlobal.main && GameGlobal.main.setFPSLimit) {
+              GameGlobal.main.setFPSLimit(settings.fpsLimit);
+            }
           }
         }
       }

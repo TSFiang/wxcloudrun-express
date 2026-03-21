@@ -1,18 +1,20 @@
-// 假设render.js已经在HTML中加载
-// 其他类将在全局作用域中可用
+let ctx;
 
-let ctx; // 声明ctx变量，在构造函数中初始化
-
-/**
- * 游戏主函数
- */
 class Main {
-  aniId = 0; // 用于存储动画帧的ID
+  aniId = 0;
   gameInfo;
-  lastTime = Date.now(); // 上次时间
+  lastTime = 0;
+  
+  // 帧率控制
+  targetFPS = 60;
+  fixedDeltaTime = 1000 / 60;
+  accumulatedTime = 0;
+  maxAccumulatedTime = 200;
+  fps = 0;
+  frameCount = 0;
+  fpsUpdateTime = 0;
 
   constructor() {
-    // 确保所有类在全局作用域中可用
     if (typeof DataBus === 'undefined') {
       console.error('DataBus class not found');
       return;
@@ -30,7 +32,6 @@ class Main {
       return;
     }
     
-    // 获取canvas元素
     let canvasElement;
     if (typeof canvas !== 'undefined') {
       canvasElement = canvas;
@@ -41,27 +42,23 @@ class Main {
       return;
     }
 
-    // 初始化canvas上下文
     ctx = canvasElement.getContext('2d');
 
-    // 创建全局实例
     if (typeof GameGlobal === 'undefined') {
       if (typeof window !== 'undefined') {
         window.GameGlobal = {};
       } else {
-        // 在微信小游戏环境中，GameGlobal应该已经存在
         console.error('GameGlobal not found');
         return;
       }
     }
-    GameGlobal.databus = new DataBus(); // 全局数据管理，用于管理游戏状态和数据
-    GameGlobal.musicManager = new Music(); // 全局音乐管理实例
-    GameGlobal.feedbackManager = new FeedbackManager(); // 全局反馈管理实例
+    GameGlobal.databus = new DataBus();
+    GameGlobal.musicManager = new Music();
+    GameGlobal.feedbackManager = new FeedbackManager();
+    GameGlobal.main = this; // 保存 Main 实例引用
 
-    // 创建游戏UI显示
     this.gameInfo = new GameInfo();
 
-    // 绑定事件
     this.gameInfo.on('startGame', this.startGame.bind(this));
     this.gameInfo.on('collection', this.showCollection.bind(this));
     this.gameInfo.on('leaderboard', this.showLeaderboard.bind(this));
@@ -72,85 +69,67 @@ class Main {
     this.gameInfo.on('watchAd', this.watchAd.bind(this));
     this.gameInfo.on('pause', this.pause.bind(this));
 
-    // 开始游戏
     this.start();
   }
-
+  
   /**
-   * 开始游戏
+   * 设置帧率上限
+   * @param {number} fps - 目标帧率（60或120）
    */
+  setFPSLimit(fps) {
+    this.targetFPS = fps;
+    this.fixedDeltaTime = 1000 / fps;
+    console.log(`FPS limit set to ${fps}, fixedDeltaTime: ${this.fixedDeltaTime.toFixed(2)}ms`);
+  }
+
   start() {
     GameGlobal.databus.reset();
     cancelAnimationFrame(this.aniId);
+    this.lastTime = performance.now();
+    this.accumulatedTime = 0;
+    
+    // 应用设置中的帧率
+    if (GameGlobal.databus && GameGlobal.databus.settings) {
+      this.setFPSLimit(GameGlobal.databus.settings.fpsLimit || 60);
+    }
+    
     this.aniId = requestAnimationFrame(this.loop.bind(this));
   }
 
-  /**
-   * 开始游戏
-   */
   startGame() {
     GameGlobal.databus.startGame();
   }
 
-  /**
-   * 显示图鉴
-   */
   showCollection() {
     GameGlobal.databus.gameState = 'collection';
   }
 
-  /**
-   * 显示排行榜
-   */
   showLeaderboard() {
-    // 暂时显示主菜单，实际应该显示排行榜
     GameGlobal.databus.gameState = 'menu';
   }
 
-  /**
-   * 显示设置
-   */
   showSettings() {
     GameGlobal.databus.gameState = 'settings';
   }
 
-  /**
-   * 返回主菜单
-   */
   backToMenu() {
     GameGlobal.databus.reset();
   }
 
-  /**
-   * 重新开始
-   */
   restart() {
     GameGlobal.databus.startGame();
   }
 
-  /**
-   * 分享
-   */
   share() {
-    // 实现分享逻辑
     console.log('分享战绩');
   }
 
-  /**
-   * 看广告
-   */
   watchAd() {
-    // 实现看广告逻辑
     console.log('看广告复活');
-    // 复活逻辑：在当前位置继续游戏
     GameGlobal.databus.revive();
   }
 
-  /**
-   * 暂停游戏
-   */
   pause() {
-    // 切换暂停状态
     const databus = GameGlobal.databus;
     if (databus.gameState === 'playing') {
       databus.gameState = 'paused';
@@ -161,63 +140,90 @@ class Main {
     }
   }
 
-  /**
-   * canvas重绘函数
-   */
   render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // 清空画布
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 应用屏幕震动
     GameGlobal.feedbackManager.applyShake(ctx);
 
-    // 绘制游戏UI
     this.gameInfo.render(ctx);
 
-    // 绘制动画
     GameGlobal.databus.animations.forEach((ani) => {
       if (ani.isPlaying) {
         ani.aniRender(ctx);
       }
     });
 
-    // 绘制反馈效果（粒子等）
     GameGlobal.feedbackManager.render(ctx);
 
-    // 重置屏幕震动
     GameGlobal.feedbackManager.resetShake(ctx);
+    
+    // 绘制性能监控（调试模式）
+    this.renderDebugInfo(ctx);
+  }
+  
+  // 绘制调试信息
+  renderDebugInfo(ctx) {
+    if (GameGlobal.databus.settings && GameGlobal.databus.settings.showDebug) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(5, canvas.height - 50, 100, 45);
+      
+      ctx.fillStyle = '#00FF00';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`FPS: ${this.fps}`, 10, canvas.height - 35);
+      ctx.fillText(`Frame: ${GameGlobal.databus.frame}`, 10, canvas.height - 20);
+    }
   }
 
-  // 游戏逻辑更新主函数
-  update() {
-    GameGlobal.databus.frame++; // 增加帧数
+  // 游戏逻辑更新（使用固定时间步进）
+  update(deltaTime) {
+    GameGlobal.databus.frame++;
 
-    // 处理时间
-    const now = Date.now();
-    const deltaTime = (now - this.lastTime) / 1000; // 转换为秒
-    this.lastTime = now;
-
-    // 更新反馈系统
     GameGlobal.feedbackManager.update(deltaTime);
 
-    // 游戏中逻辑
     if (GameGlobal.databus.gameState === 'playing') {
-      // 应用时间缩放
       const scaledDeltaTime = deltaTime * GameGlobal.feedbackManager.timeScale;
       
-      // 更新平台
       GameGlobal.databus.updatePlatforms();
-      
-      // 更新玩家
       GameGlobal.databus.updatePlayer(scaledDeltaTime);
     }
   }
 
-  // 实现游戏帧循环
-  loop() {
-    this.update(); // 更新游戏逻辑
-    this.render(); // 渲染游戏画面
+  // 帧循环（固定时间步进）
+  loop(currentTime) {
+    // 计算帧间隔
+    const frameTime = currentTime - this.lastTime;
+    this.lastTime = currentTime;
+    
+    // 累积时间
+    this.accumulatedTime += frameTime;
+    
+    // 限制最大累积时间，防止切换标签页后死循环
+    if (this.accumulatedTime > this.maxAccumulatedTime) {
+      this.accumulatedTime = this.maxAccumulatedTime;
+    }
+    
+    // 使用固定时间步进更新逻辑
+    let updates = 0;
+    const maxUpdates = 5; // 每帧最多更新次数，防止卡顿
+    
+    while (this.accumulatedTime >= this.fixedDeltaTime && updates < maxUpdates) {
+      this.update(this.fixedDeltaTime / 1000); // 转换为秒
+      this.accumulatedTime -= this.fixedDeltaTime;
+      updates++;
+    }
+    
+    // 渲染（每帧都渲染）
+    this.render();
+    
+    // 计算FPS
+    this.frameCount++;
+    if (currentTime - this.fpsUpdateTime >= 1000) {
+      this.fps = this.frameCount;
+      this.frameCount = 0;
+      this.fpsUpdateTime = currentTime;
+    }
 
-    // 请求下一帧动画
     this.aniId = requestAnimationFrame(this.loop.bind(this));
   }
 }
