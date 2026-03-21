@@ -45,6 +45,11 @@ const SPRITE_SCALE = 0.25;
 class GameInfo extends Emitter {
   constructor() {
     super();
+    
+    // 确保事件系统已初始化
+    if (!this.e) {
+      this.e = {};
+    }
 
     // 按钮区域
     this.btnAreas = {

@@ -19,11 +19,12 @@
     global.TinyEmitter = factory();
   }
 }(typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : this, function() {
-  function Emitter() {
+  // TinyEmitter构造函数
+  function TinyEmitter() {
     this.e = {};
   }
 
-  Emitter.prototype.on = function(name, fn, ctx) {
+  TinyEmitter.prototype.on = function(name, fn, ctx) {
     if (!this.e[name]) {
       this.e[name] = [];
     }
@@ -31,7 +32,7 @@
     return this;
   };
 
-  Emitter.prototype.once = function(name, fn, ctx) {
+  TinyEmitter.prototype.once = function(name, fn, ctx) {
     var self = this;
     function on() {
       self.off(name, on);
@@ -41,7 +42,7 @@
     return this.on(name, on, ctx);
   };
 
-  Emitter.prototype.emit = function(name) {
+  TinyEmitter.prototype.emit = function(name) {
     var args = Array.prototype.slice.call(arguments, 1);
     var events = this.e[name] || [];
     for (var i = 0; i < events.length; i++) {
@@ -50,7 +51,7 @@
     return this;
   };
 
-  Emitter.prototype.off = function(name, fn) {
+  TinyEmitter.prototype.off = function(name, fn) {
     var events = this.e[name] || [];
     var remaining = [];
     for (var i = 0; i < events.length; i++) {
@@ -65,11 +66,6 @@
     }
     return this;
   };
-
-  // 返回构造函数
-  function TinyEmitter() {}
-  TinyEmitter.prototype = Emitter.prototype;
-  TinyEmitter.prototype.constructor = TinyEmitter;
 
   return TinyEmitter;
 }));
