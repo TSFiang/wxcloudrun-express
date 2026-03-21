@@ -1,15 +1,27 @@
-import Emitter from '../libs/tinyemitter';
-import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
+// 假设Emitter类在全局作用域中可用
 
-const atlas = wx.createImage();
+// 检测是否在微信小游戏环境
+const isWechatGame = typeof wx !== 'undefined' && typeof wx.createCanvas !== 'undefined';
+
+// 创建图片的通用函数
+function createImage() {
+  if (isWechatGame) {
+    return wx.createImage();
+  } else if (typeof window !== 'undefined') {
+    return new Image();
+  }
+  return null;
+}
+
+const atlas = createImage();
 atlas.src = 'images/Common.png';
 
 // 加载背景图片
-const backgroundImage = wx.createImage();
+const backgroundImage = createImage();
 backgroundImage.src = 'images/bg.jpg';
 
 // 加载角色精灵图
-const playerSpriteSheet = wx.createImage();
+const playerSpriteSheet = createImage();
 playerSpriteSheet.src = 'images/image_720350330364146.png';
 
 // 定义动画帧的位置和大小
@@ -24,7 +36,7 @@ const playerFrames = {
 // 精灵图缩放比例，用于调整精灵大小
 const SPRITE_SCALE = 0.25;
 
-export default class GameInfo extends Emitter {
+class GameInfo extends Emitter {
   constructor() {
     super();
 
@@ -119,9 +131,20 @@ export default class GameInfo extends Emitter {
     this.touchStartTime = 0;
 
     // 绑定触摸事件
-    wx.onTouchStart(this.touchStartHandler.bind(this));
-    wx.onTouchEnd(this.touchEndHandler.bind(this));
-    wx.onTouchMove(this.touchMoveHandler.bind(this));
+    if (isWechatGame) {
+      wx.onTouchStart(this.touchStartHandler.bind(this));
+      wx.onTouchEnd(this.touchEndHandler.bind(this));
+      wx.onTouchMove(this.touchMoveHandler.bind(this));
+    } else if (typeof window !== 'undefined' && window.canvas) {
+      // 浏览器环境
+      window.canvas.addEventListener('touchstart', this.touchStartHandler.bind(this));
+      window.canvas.addEventListener('touchend', this.touchEndHandler.bind(this));
+      window.canvas.addEventListener('touchmove', this.touchMoveHandler.bind(this));
+      // 同时支持鼠标事件
+      window.canvas.addEventListener('mousedown', this.mouseDownHandler.bind(this));
+      window.canvas.addEventListener('mouseup', this.mouseUpHandler.bind(this));
+      window.canvas.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
+    }
   }
 
   setFont(ctx, size = 20, color = '#333333') {
@@ -707,6 +730,24 @@ export default class GameInfo extends Emitter {
   touchMoveHandler(event) {
     // 可以添加移动相关的逻辑
   }
+  
+  // 处理鼠标按下
+  mouseDownHandler(event) {
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    this.touchStartHandler({ touches: [{ clientX: x, clientY: y }] });
+  }
+  
+  // 处理鼠标抬起
+  mouseUpHandler(event) {
+    this.touchEndHandler(event);
+  }
+  
+  // 处理鼠标移动
+  mouseMoveHandler(event) {
+    this.touchMoveHandler(event);
+  }
 
   // 处理触摸结束
   touchEndHandler(event) {
@@ -811,4 +852,13 @@ export default class GameInfo extends Emitter {
   isInArea(x, y, area) {
     return x >= area.startX && x <= area.endX && y >= area.startY && y <= area.endY;
   }
+}
+
+// 将GameInfo类挂载到全局对象
+if (typeof window !== 'undefined') {
+  window.GameInfo = GameInfo;
+}
+
+if (typeof GameGlobal !== 'undefined') {
+  GameGlobal.GameInfo = GameInfo;
 }

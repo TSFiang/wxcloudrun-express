@@ -18,7 +18,18 @@
 </head>
 <body>
     <canvas id="gameCanvas" width="375" height="667"></canvas>
+    <script src="js/libs/tinyemitter.js"></script>
+    <script src="js/base/pool.js"></script>
     <script src="js/render.js"></script>
+    <script src="js/databus.js"></script>
+    <script src="js/runtime/music.js"></script>
+    <script src="js/runtime/gameinfo.js"></script>
     <script src="js/main.js"></script>
+    <script>
+      // 初始化游戏
+      window.onload = function() {
+        new Main();
+      };
+    </script>
 </body>
 </html>

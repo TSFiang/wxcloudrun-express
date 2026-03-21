@@ -1,22 +1,48 @@
-import './render'; // 初始化Canvas
-import GameInfo from './runtime/gameinfo'; // 导入游戏UI类
-import Music from './runtime/music'; // 导入音乐类
-import DataBus from './databus'; // 导入数据类，用于管理游戏状态和数据
+// 假设render.js已经在HTML中加载
+// 其他类将在全局作用域中可用
 
-const ctx = canvas.getContext('2d'); // 获取canvas的2D绘图上下文;
-
-GameGlobal.databus = new DataBus(); // 全局数据管理，用于管理游戏状态和数据
-GameGlobal.musicManager = new Music(); // 全局音乐管理实例
+let ctx; // 声明ctx变量，在构造函数中初始化
 
 /**
  * 游戏主函数
  */
-export default class Main {
+class Main {
   aniId = 0; // 用于存储动画帧的ID
-  gameInfo = new GameInfo(); // 创建游戏UI显示
+  gameInfo;
   lastTime = Date.now(); // 上次时间
 
   constructor() {
+    // 确保所有类在全局作用域中可用
+    if (typeof DataBus === 'undefined') {
+      console.error('DataBus class not found');
+      return;
+    }
+    if (typeof Music === 'undefined') {
+      console.error('Music class not found');
+      return;
+    }
+    if (typeof GameInfo === 'undefined') {
+      console.error('GameInfo class not found');
+      return;
+    }
+    if (typeof canvas === 'undefined') {
+      console.error('Canvas element not found');
+      return;
+    }
+
+    // 初始化canvas上下文
+    ctx = canvas.getContext('2d');
+
+    // 创建全局实例
+    if (!GameGlobal) {
+      window.GameGlobal = {};
+    }
+    GameGlobal.databus = new DataBus(); // 全局数据管理，用于管理游戏状态和数据
+    GameGlobal.musicManager = new Music(); // 全局音乐管理实例
+
+    // 创建游戏UI显示
+    this.gameInfo = new GameInfo();
+
     // 绑定事件
     this.gameInfo.on('startGame', this.startGame.bind(this));
     this.gameInfo.on('collection', this.showCollection.bind(this));
@@ -145,4 +171,13 @@ export default class Main {
     // 请求下一帧动画
     this.aniId = requestAnimationFrame(this.loop.bind(this));
   }
+}
+
+// 将Main类挂载到全局对象
+if (typeof window !== 'undefined') {
+  window.Main = Main;
+}
+
+if (typeof GameGlobal !== 'undefined') {
+  GameGlobal.Main = Main;
 }

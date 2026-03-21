@@ -1,4 +1,4 @@
-import Pool from './base/pool';
+// 假设Pool类在全局作用域中可用
 
 let instance;
 
@@ -6,7 +6,7 @@ let instance;
  * 全局状态管理器
  * 负责管理游戏的状态，包括跳跃、收集、拼豆和游戏状态等
  */
-export default class DataBus {
+class DataBus {
   // 游戏状态
   gameState = 'menu'; // 游戏状态：menu, playing, gameOver, success, collection, tutorial
   
@@ -501,3 +501,16 @@ export default class DataBus {
 // 全局常量
 const SCREEN_WIDTH = 375;
 const SCREEN_HEIGHT = 667;
+
+// 将DataBus类挂载到全局对象
+if (typeof window !== 'undefined') {
+  window.DataBus = DataBus;
+  window.SCREEN_WIDTH = SCREEN_WIDTH;
+  window.SCREEN_HEIGHT = SCREEN_HEIGHT;
+}
+
+if (typeof GameGlobal !== 'undefined') {
+  GameGlobal.DataBus = DataBus;
+  GameGlobal.SCREEN_WIDTH = SCREEN_WIDTH;
+  GameGlobal.SCREEN_HEIGHT = SCREEN_HEIGHT;
+}

@@ -8,7 +8,7 @@ const __ = {
  * 可以有效减少对象创建开销和避免频繁的垃圾回收
  * 提高游戏性能
  */
-export default class Pool {
+class Pool {
   constructor() {
     this[__.poolDic] = {};
   }
@@ -40,4 +40,13 @@ export default class Pool {
   recover(name, instance) {
     this.getPoolBySign(name).push(instance);
   }
+}
+
+// 将Pool类挂载到全局对象
+if (typeof window !== 'undefined') {
+  window.Pool = Pool;
+}
+
+if (typeof GameGlobal !== 'undefined') {
+  GameGlobal.Pool = Pool;
 }
