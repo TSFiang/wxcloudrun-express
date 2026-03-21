@@ -44,6 +44,7 @@ class DataBus {
     power: 0, // 蓄力值
     maxPower: 100, // 最大蓄力值
     state: 'stand', // 玩家状态：stand, jump, collect, fail
+    currentPlatform: null, // 当前所在平台
   };
   
   // 平台相关
@@ -91,6 +92,7 @@ class DataBus {
     this.score = 0;
     this.time = 0;
     this.isGameStarted = false;
+    this.gameStartTime = null; // 重置游戏开始时间
     this.player = {
       x: 0,
       y: 0,
@@ -101,6 +103,7 @@ class DataBus {
       power: 0,
       maxPower: 100,
       state: 'stand',
+      currentPlatform: null, // 重置当前平台
     };
     this.platforms = [];
     this.platformSpeed = 1; // 降低初始速度
@@ -116,6 +119,8 @@ class DataBus {
     };
     this.animations = [];
     this.gameState = 'menu';
+    this.isPaused = false; // 重置暂停状态
+    
     // 重置教程状态
     if (!this.isFirstPlay) {
       this.showTutorial = this.settings.showTutorial;
@@ -213,7 +218,7 @@ class DataBus {
     
     const platform = {
       x: lastPlatform.x + platformSize + platformGap + Math.random() * 5, // 减少随机偏移
-      y: lastPlatform.y + (Math.random() - 0.5) * 60, // 减少垂直偏移，让平台更容易到达
+      y: lastPlatform.y + (Math.random() - 0.5) * 40, // 减少垂直偏移，让平台更容易到达
       size: platformSize,
       color: this.getRandomColor(),
       type: this.getRandomPlatformType(),
@@ -221,8 +226,8 @@ class DataBus {
       moveDirection: Math.random() > 0.5 ? 1 : -1
     };
     
-    // 确保平台在屏幕范围内
-    platform.y = Math.max(50, Math.min(window.SCREEN_HEIGHT - 100, platform.y));
+    // 确保平台在屏幕范围内，并且限制垂直变化幅度
+    platform.y = Math.max(100, Math.min(window.SCREEN_HEIGHT - 150, platform.y));
     
     this.platforms.push(platform);
   }
@@ -299,9 +304,10 @@ class DataBus {
       
       this.player.isJumping = true;
       this.player.state = 'jump';
+      
       // 调整跳跃强度与距离的关系，增加跳跃高度以解决平台过高的问题
       // 最大蓄力时可以跳约1.5个平台距离，并且能够到达较高的平台
-      this.player.velocityY = -power * 0.15; // 垂直速度，控制跳跃高度
+      this.player.velocityY = -power * 0.18; // 垂直速度，控制跳跃高度（增加）
       this.player.velocityX = power * 0.04; // 水平速度，控制跳跃距离
     }
   }
@@ -319,29 +325,37 @@ class DataBus {
         isOnPlatform = true;
         
         if (this.player.isJumping && this.player.velocityY > 0) {
-          //  landed on platform
+          // 落在平台上
           this.player.isJumping = false;
           this.player.velocityY = 0;
           this.player.velocityX = 0;
           this.player.y = platform.y - this.player.size;
           
-          // 收集拼豆
-          this.player.state = 'collect';
-          this.collectBean(platform.color);
-          
-          // 处理特殊平台
-          this.handlePlatformType(platform.type);
-          
-          // 增加分数
-          this.score++;
-          
-          // 增加平台速度，随分数增加而平滑增加（降低增长速度）
-          this.platformSpeed = 1 + Math.min(this.score * 0.005, 3);
-          
-          // 短暂延迟后恢复站立状态
-          setTimeout(() => {
+          // 检查是否是新的平台（避免重复加分）
+          if (this.player.currentPlatform !== platform) {
+            this.player.currentPlatform = platform;
+            
+            // 收集拼豆
+            this.player.state = 'collect';
+            this.collectBean(platform.color);
+            
+            // 处理特殊平台
+            this.handlePlatformType(platform.type);
+            
+            // 增加分数
+            this.score++;
+            
+            // 增加平台速度，随分数增加而平滑增加（降低增长速度）
+            this.platformSpeed = 1 + Math.min(this.score * 0.005, 3);
+            
+            // 短暂延迟后恢复站立状态
+            setTimeout(() => {
+              this.player.state = 'stand';
+            }, 300);
+          } else {
+            // 同一个平台，不加分，直接恢复站立状态
             this.player.state = 'stand';
-          }, 300);
+          }
         }
         break;
       }
