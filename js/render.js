@@ -50,3 +50,11 @@ if (typeof GameGlobal !== 'undefined') {
 if (typeof window !== 'undefined') {
   window.canvas = canvas;
 }
+
+if (typeof GameGlobal !== 'undefined') {
+  GameGlobal.canvas = canvas;
+  // 在微信小游戏环境中，将canvas变量也挂载到全局作用域
+  if (isWechatGame) {
+    canvas = GameGlobal.canvas;
+  }
+}

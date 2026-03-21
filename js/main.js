@@ -25,17 +25,30 @@ class Main {
       console.error('GameInfo class not found');
       return;
     }
-    if (typeof canvas === 'undefined') {
+    
+    // 获取canvas元素
+    let canvasElement;
+    if (typeof canvas !== 'undefined') {
+      canvasElement = canvas;
+    } else if (typeof GameGlobal !== 'undefined' && GameGlobal.canvas) {
+      canvasElement = GameGlobal.canvas;
+    } else {
       console.error('Canvas element not found');
       return;
     }
 
     // 初始化canvas上下文
-    ctx = canvas.getContext('2d');
+    ctx = canvasElement.getContext('2d');
 
     // 创建全局实例
-    if (!GameGlobal) {
-      window.GameGlobal = {};
+    if (typeof GameGlobal === 'undefined') {
+      if (typeof window !== 'undefined') {
+        window.GameGlobal = {};
+      } else {
+        // 在微信小游戏环境中，GameGlobal应该已经存在
+        console.error('GameGlobal not found');
+        return;
+      }
     }
     GameGlobal.databus = new DataBus(); // 全局数据管理，用于管理游戏状态和数据
     GameGlobal.musicManager = new Music(); // 全局音乐管理实例
