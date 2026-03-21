@@ -4,6 +4,9 @@ FROM nginx:alpine
 # 复制项目文件到 Nginx 的默认静态文件目录
 COPY . /usr/share/nginx/html
 
+# 配置 Nginx 以支持微信小游戏
+RUN echo 'server { \n    listen 80; \n    server_name localhost; \n    location / { \n        root /usr/share/nginx/html; \n        index game.html index.htm; \n        try_files $uri $uri/ /game.html; \n    } \n}' > /etc/nginx/conf.d/default.conf
+
 # 暴露 80 端口
 EXPOSE 80
 
