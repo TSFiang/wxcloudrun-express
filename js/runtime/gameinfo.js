@@ -433,6 +433,9 @@ class GameInfo extends Emitter {
     // 绘制平台
     this.renderPlatforms(ctx);
     
+    // 绘制图鉴道具
+    this.renderCollectibleItems(ctx);
+    
     // 绘制玩家
     this.renderPlayer(ctx);
     
@@ -914,6 +917,41 @@ class GameInfo extends Emitter {
     ctx.textBaseline = 'bottom';
     ctx.fillText(count, area.endX - 5, area.endY - 5);
   }
+  
+  // 渲染图鉴道具
+  renderCollectibleItems(ctx) {
+    const databus = GameGlobal.databus;
+    const items = databus.collectibleItems;
+    
+    items.forEach(item => {
+      if (item.collected) return;
+      
+      // 绘制发光效果
+      ctx.save();
+      ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 200) * 0.2;
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.arc(
+        item.x + item.size / 2,
+        item.displayY || item.y + item.size / 2,
+        item.size / 2 + 5,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+      ctx.restore();
+      
+      // 绘制图鉴道具（emoji）
+      ctx.font = `${item.size}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(
+        item.item,
+        item.x + item.size / 2,
+        (item.displayY || item.y) + item.size / 2
+      );
+    });
+  }
 
   // 渲染游戏结束
   renderGameOver(ctx) {
@@ -956,38 +994,26 @@ class GameInfo extends Emitter {
     ctx.textAlign = 'center';
     ctx.fillText('拼豆图鉴', 375 / 2, 50);
     
-    // 绘制当前碎片总数
-    const databus = GameGlobal.databus;
-    this.setFont(ctx, 16, '#FFD700');
-    ctx.fillText(`当前碎片: ${databus.beanPieces}`, 375 / 2, 80);
-    
     // 绘制获取说明
+    const databus = GameGlobal.databus;
     this.setFont(ctx, 12, '#cccccc');
-    ctx.fillText('消除3个相同颜色拼豆可获得碎片', 375 / 2, 100);
+    ctx.fillText('游戏中收集图鉴道具解锁', 375 / 2, 80);
 
     // 绘制图鉴项目
     const collections = databus.beanCollection;
+    const categories = Object.keys(collections);
     
-    const items = [
-      { key: 'animals', name: '小动物', icon: '🐶', unlockAt: 8 },
-      { key: 'desserts', name: '甜品', icon: '🍰', unlockAt: 12 },
-      { key: 'stars', name: '星星', icon: '⭐', unlockAt: 16 },
-      { key: 'hearts', name: '爱心', icon: '❤️', unlockAt: 20 },
-      { key: 'cartoons', name: '卡通', icon: '🎨', unlockAt: 25 }
-    ];
-    
-    items.forEach((item, index) => {
-      const collection = collections[item.key];
-      const x = 30;
-      const y = 125 + index * 95;
-      const width = 375 - 60;
-      const height = 85;
+    categories.forEach((key, index) => {
+      const collection = collections[key];
+      const x = 20;
+      const y = 100 + index * 110;
+      const width = 335;
+      const height = 100;
       
       // 绘制图鉴项背景
       if (collection.unlocked) {
         ctx.fillStyle = 'rgba(100, 200, 100, 0.3)';
-      } else if (databus.beanPieces >= item.unlockAt - 5) {
-        // 接近解锁时显示黄色提示
+      } else if (collection.collected.length > 0) {
         ctx.fillStyle = 'rgba(255, 200, 100, 0.3)';
       } else {
         ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
@@ -998,48 +1024,48 @@ class GameInfo extends Emitter {
       ctx.lineWidth = 2;
       ctx.strokeRect(x, y, width, height);
       
-      // 绘制图标
-      ctx.font = '32px Arial';
+      // 绘制类别名称
+      this.setFont(ctx, 18, '#ffffff');
       ctx.textAlign = 'left';
-      ctx.fillText(item.icon, x + 15, y + 45);
+      ctx.fillText(`${collection.icon} ${collection.name}`, x + 10, y + 25);
       
-      // 绘制名称
-      this.setFont(ctx, 20, collection.unlocked ? '#ffffff' : '#999999');
-      ctx.fillText(item.name, x + 60, y + 35);
-      
-      // 绘制进度条背景
-      const progressX = x + 60;
-      const progressY = y + 50;
-      const progressWidth = width - 80;
-      const progressHeight = 12;
-      
-      ctx.fillStyle = 'rgba(50, 50, 50, 0.5)';
-      ctx.fillRect(progressX, progressY, progressWidth, progressHeight);
-      
-      // 绘制进度条
-      const progress = Math.min(databus.beanPieces / item.unlockAt, 1);
-      ctx.fillStyle = collection.unlocked ? '#4CAF50' : '#FFD700';
-      ctx.fillRect(progressX, progressY, progressWidth * progress, progressHeight);
-      
-      // 绘制进度条边框
-      ctx.strokeStyle = '#666666';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(progressX, progressY, progressWidth, progressHeight);
-      
-      // 绘制解锁条件
+      // 绘制进度
       this.setFont(ctx, 12, '#cccccc');
       ctx.textAlign = 'right';
-      if (collection.unlocked) {
-        ctx.fillText('已解锁 ✓', x + width - 10, y + 35);
-      } else {
-        const remaining = item.unlockAt - databus.beanPieces;
-        ctx.fillText(`还需 ${remaining} 碎片`, x + width - 10, y + 35);
+      ctx.fillText(`${collection.collected.length}/${collection.total}`, x + width - 10, y + 25);
+      
+      // 绘制已收集的道具
+      const itemSize = 30;
+      const startX = x + 10;
+      const startY = y + 45;
+      const itemsPerRow = 8;
+      
+      for (let i = 0; i < collection.total; i++) {
+        const itemX = startX + (i % itemsPerRow) * (itemSize + 5);
+        const itemY = startY + Math.floor(i / itemsPerRow) * (itemSize + 5);
+        
+        if (i < collection.collected.length) {
+          // 已收集：显示道具
+          ctx.font = `${itemSize - 4}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(collection.collected[i], itemX + itemSize / 2, itemY + itemSize / 2);
+        } else {
+          // 未收集：显示空白框
+          ctx.fillStyle = 'rgba(50, 50, 50, 0.5)';
+          ctx.fillRect(itemX, itemY, itemSize, itemSize);
+          ctx.strokeStyle = '#444444';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(itemX, itemY, itemSize, itemSize);
+        }
       }
       
-      // 绘制碎片数量
-      this.setFont(ctx, 10, '#999999');
-      ctx.textAlign = 'right';
-      ctx.fillText(`${Math.min(databus.beanPieces, item.unlockAt)}/${item.unlockAt}`, x + width - 10, y + 75);
+      // 绘制解锁状态
+      if (collection.unlocked) {
+        this.setFont(ctx, 12, '#4CAF50');
+        ctx.textAlign = 'right';
+        ctx.fillText('已完成 ✓', x + width - 10, y + height - 10);
+      }
     });
 
     // 绘制返回按钮

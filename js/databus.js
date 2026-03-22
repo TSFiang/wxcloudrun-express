@@ -110,14 +110,52 @@ class DataBus {
   /** @type {number} 拼豆碎片数量 */
   beanPieces = 0;
   
-  /** @type {Object} 拼豆图鉴 */
+  /** @type {Object} 拼豆图鉴 - 直接收集图鉴道具 */
   beanCollection = {
-    animals: { unlocked: false, pieces: 0, total: 8, unlockAt: 8 },
-    desserts: { unlocked: false, pieces: 0, total: 12, unlockAt: 12 },
-    stars: { unlocked: false, pieces: 0, total: 16, unlockAt: 16 },
-    hearts: { unlocked: false, pieces: 0, total: 20, unlockAt: 20 },
-    cartoons: { unlocked: false, pieces: 0, total: 25, unlockAt: 25 }
+    animals: { 
+      name: '小动物', 
+      icon: '🐶',
+      unlocked: false, 
+      collected: [],  // 已收集的图鉴项
+      total: 8,       // 总共有8个小动物
+      items: ['🐶', '🐱', '🐰', '🦊', '🐻', '🐼', '🐨', '🦁']
+    },
+    desserts: { 
+      name: '甜品', 
+      icon: '🍰',
+      unlocked: false, 
+      collected: [], 
+      total: 8,
+      items: ['🍰', '🎂', '🍩', '🍪', '🍫', '🍬', '🍭', '🍮']
+    },
+    stars: { 
+      name: '星星', 
+      icon: '⭐',
+      unlocked: false, 
+      collected: [], 
+      total: 8,
+      items: ['⭐', '🌟', '✨', '💫', '🌠', '🔮', '💎', '💍']
+    },
+    hearts: { 
+      name: '爱心', 
+      icon: '❤️',
+      unlocked: false, 
+      collected: [], 
+      total: 8,
+      items: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍']
+    },
+    cartoons: { 
+      name: '卡通', 
+      icon: '🎨',
+      unlocked: false, 
+      collected: [], 
+      total: 8,
+      items: ['🎨', '🎭', '🎪', '🎢', '🎡', '🎠', '🎯', '🎲']
+    }
   };
+  
+  /** @type {Array} 游戏中可收集的图鉴道具 */
+  collectibleItems = [];
   
   /** @type {Object} 道具数量 */
   items = {
@@ -191,6 +229,7 @@ class DataBus {
     this.basePlatformSize = 80; // 增大平台
     this.collectedBeans = [];
     this.beanPieces = 0;
+    this.collectibleItems = []; // 清空图鉴道具
     // 道具不清空，保留玩家积累的道具
     // 测试阶段：如果没有道具，给初始道具（每个3个）
     if (this.items.shield === 0 && this.items.rainbow === 0 && 
@@ -564,7 +603,60 @@ class DataBus {
     // 平台安全区域：100-480
     platform.y = Math.max(100, Math.min(480, platform.y));
     
+    // 有一定概率在平台上生成图鉴道具（10%概率）
+    if (Math.random() < 0.1) {
+      const collectible = this.generateCollectibleItem(platform);
+      if (collectible) {
+        this.collectibleItems.push(collectible);
+      }
+    }
+    
     this.platforms.push(platform);
+  }
+  
+  // 生成图鉴道具
+  generateCollectibleItem(platform) {
+    // 随机选择一个图鉴类别
+    const categories = Object.keys(this.beanCollection);
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    const collection = this.beanCollection[category];
+    
+    // 找一个还没收集的道具
+    const uncollectedItems = collection.items.filter(item => !collection.collected.includes(item));
+    if (uncollectedItems.length === 0) return null;
+    
+    const item = uncollectedItems[Math.floor(Math.random() * uncollectedItems.length)];
+    
+    return {
+      x: platform.x + platform.size / 2 - 15,
+      y: platform.y - 50,
+      size: 30,
+      category: category,
+      item: item,
+      collected: false,
+      floatOffset: 0,
+      floatSpeed: 0.05 + Math.random() * 0.05
+    };
+  }
+  
+  // 收集图鉴道具
+  collectCollectionItem(item) {
+    const collection = this.beanCollection[item.category];
+    if (!collection.collected.includes(item.item)) {
+      collection.collected.push(item.item);
+      console.log(`收集图鉴: ${collection.name} - ${item.item}`);
+      
+      // 检查是否完成整个类别
+      if (collection.collected.length >= collection.total) {
+        collection.unlocked = true;
+        console.log(`恭喜！完成图鉴: ${collection.name}！`);
+      }
+      
+      // 增加分数
+      this.score += 5;
+      return true;
+    }
+    return false;
   }
 
   // 更新平台
@@ -615,7 +707,54 @@ class DataBus {
       if (lastPlatform && lastPlatform.x < window.SCREEN_WIDTH - difficulty.gap) {
         this.generatePlatform();
       }
+      
+      // 更新图鉴道具位置
+      this.updateCollectibleItems(currentSpeed);
     }
+  }
+  
+  // 更新图鉴道具
+  updateCollectibleItems(speed) {
+    // 移除已收集或屏幕外的道具
+    this.collectibleItems = this.collectibleItems.filter(item => {
+      return !item.collected && item.x + item.size > 0;
+    });
+    
+    // 移动道具
+    this.collectibleItems.forEach(item => {
+      item.x -= speed;
+      // 浮动动画
+      item.floatOffset += item.floatSpeed;
+      item.displayY = item.y + Math.sin(item.floatOffset) * 5;
+    });
+    
+    // 检测玩家与道具的碰撞
+    this.checkCollectibleCollision();
+  }
+  
+  // 检测图鉴道具碰撞
+  checkCollectibleCollision() {
+    const playerLeft = this.player.x;
+    const playerRight = this.player.x + 60; // 玩家渲染宽度
+    const playerTop = this.player.y;
+    const playerBottom = this.player.y + 80; // 玩家渲染高度
+    
+    this.collectibleItems.forEach(item => {
+      if (item.collected) return;
+      
+      const itemLeft = item.x;
+      const itemRight = item.x + item.size;
+      const itemTop = item.displayY || item.y;
+      const itemBottom = itemTop + item.size;
+      
+      // 简单矩形碰撞检测
+      if (playerRight > itemLeft && playerLeft < itemRight &&
+          playerBottom > itemTop && playerTop < itemBottom) {
+        // 收集道具
+        item.collected = true;
+        this.collectCollectionItem(item);
+      }
+    });
   }
 
   // 处理跳跃（带输入缓冲）
