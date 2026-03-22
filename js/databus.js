@@ -214,13 +214,32 @@ class DataBus {
       this.hasShield = false;
       console.log('护盾保护了你！继续游戏');
       
-      // 将玩家重置到最后一个平台
-      if (this.player.currentPlatform) {
-        this.player.x = this.player.currentPlatform.x + this.player.currentPlatform.size / 2 - this.player.size / 2;
-        this.player.y = this.player.currentPlatform.y - this.player.size;
+      // 玩家实际渲染大小
+      const playerRenderWidth = 60;
+      const playerRenderHeight = 80;
+      
+      // 找一个可见的平台
+      let targetPlatform = this.player.currentPlatform;
+      if (!targetPlatform || targetPlatform.x < 0 || targetPlatform.x > 375) {
+        // 找一个在屏幕内的平台
+        for (let i = this.platforms.length - 1; i >= 0; i--) {
+          const p = this.platforms[i];
+          if (p.x > 0 && p.x + p.size < 375) {
+            targetPlatform = p;
+            break;
+          }
+        }
+      }
+      
+      if (targetPlatform) {
+        // 使用渲染大小计算位置
+        this.player.x = targetPlatform.x + targetPlatform.size / 2 - playerRenderWidth / 2;
+        this.player.y = targetPlatform.y - playerRenderHeight;
         this.player.isJumping = false;
         this.player.velocityY = 0;
         this.player.velocityX = 0;
+        this.player.state = 'stand';
+        console.log('护盾保护 - 玩家位置:', this.player.x, this.player.y);
       }
       
       return; // 不结束游戏
