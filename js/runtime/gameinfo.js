@@ -769,11 +769,11 @@ class GameInfo extends Emitter {
       const scale = width / 350; // 图片原始宽度350px
       const imageHeight = 180 * scale; // 图片原始高度180px
       
-      // 绘制起始平台图片
+      // 绘制起始平台图片 - 调整垂直位置，让平台顶部与y坐标对齐
       ctx.drawImage(
         startPlatformImage,
         x,
-        y - imageHeight + 20, // 调整垂直位置，让平台顶部与玩家站立位置对齐
+        y - imageHeight + 60, // 最终调整，让玩家站在平台顶部
         width,
         imageHeight
       );
