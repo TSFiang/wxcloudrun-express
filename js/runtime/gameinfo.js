@@ -27,6 +27,76 @@ backgroundImage.src = 'images/image_695435480469248.png';
 const playerSpriteSheet = createImage();
 playerSpriteSheet.src = 'images/image_720350330364146.png';
 
+// 云朵系统
+class CloudSystem {
+  constructor() {
+    this.clouds = [];
+    this.initClouds();
+  }
+  
+  initClouds() {
+    // 创建5-8朵云
+    const cloudCount = 5 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < cloudCount; i++) {
+      this.clouds.push({
+        x: Math.random() * 500,
+        y: 50 + Math.random() * 200,
+        width: 60 + Math.random() * 80,
+        height: 30 + Math.random() * 40,
+        speed: 0.2 + Math.random() * 0.5,
+        opacity: 0.3 + Math.random() * 0.4
+      });
+    }
+  }
+  
+  update() {
+    this.clouds.forEach(cloud => {
+      cloud.x -= cloud.speed;
+      // 云朵移出屏幕后从右边重新进入
+      if (cloud.x + cloud.width < 0) {
+        cloud.x = 400 + Math.random() * 100;
+        cloud.y = 50 + Math.random() * 200;
+      }
+    });
+  }
+  
+  render(ctx) {
+    this.clouds.forEach(cloud => {
+      ctx.save();
+      ctx.globalAlpha = cloud.opacity;
+      ctx.fillStyle = '#ffffff';
+      
+      // 绘制云朵（由多个圆形组成）
+      const cx = cloud.x + cloud.width / 2;
+      const cy = cloud.y + cloud.height / 2;
+      
+      // 中心圆
+      ctx.beginPath();
+      ctx.arc(cx, cy, cloud.height / 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // 左边圆
+      ctx.beginPath();
+      ctx.arc(cx - cloud.width / 4, cy + 5, cloud.height / 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // 右边圆
+      ctx.beginPath();
+      ctx.arc(cx + cloud.width / 4, cy + 5, cloud.height / 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // 顶部圆
+      ctx.beginPath();
+      ctx.arc(cx, cy - cloud.height / 4, cloud.height / 3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.restore();
+    });
+  }
+}
+
+const cloudSystem = new CloudSystem();
+
 // 定义动画帧的位置和大小
 // 根据实际图片尺寸（864x1152），3x3网格划分精灵帧
 const playerFrames = {
@@ -319,6 +389,10 @@ class GameInfo extends Emitter {
   renderMenu(ctx) {
     // 绘制背景图片
     ctx.drawImage(backgroundImage, 0, 0, 375, 667);
+    
+    // 更新并绘制云朵（背景层）
+    cloudSystem.update();
+    cloudSystem.render(ctx);
 
     // 绘制标题
     this.setFont(ctx, 48, '#ffffff');
@@ -351,6 +425,10 @@ class GameInfo extends Emitter {
     
     // 绘制背景图片
     ctx.drawImage(backgroundImage, 0, 0, 375, 667);
+    
+    // 更新并绘制云朵（背景层）
+    cloudSystem.update();
+    cloudSystem.render(ctx);
     
     // 绘制顶部信息栏
     this.renderTopInfo(ctx);
