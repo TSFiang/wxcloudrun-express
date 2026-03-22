@@ -16,9 +16,6 @@ function createImage() {
   return null;
 }
 
-const atlas = createImage();
-atlas.src = 'images/Common.png';
-
 // 加载背景图片
 const backgroundImage = createImage();
 backgroundImage.src = 'images/image_695435480469248.png';

@@ -17,8 +17,7 @@ class ResourceLoader {
   resourceList = {
     images: [
       { key: 'background', src: 'images/image_695435480469248.png' },
-      { key: 'player', src: 'images/image_720350330364146.png' },
-      { key: 'common', src: 'images/Common.png' }
+      { key: 'player', src: 'images/image_720350330364146.png' }
     ],
     audio: [
       { key: 'bgm', src: 'audio/bgm.mp3' }
