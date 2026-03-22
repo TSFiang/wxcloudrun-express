@@ -140,6 +140,8 @@
                             
                             window.canvas = canvas;
                             window.canvasScale = scale;
+                            window.canvasOffsetLeft = (window.innerWidth - 375 * scale) / 2;
+                            window.canvasOffsetTop = (window.innerHeight - 667 * scale) / 2;
                             
                             console.log('Canvas initialized successfully');
                         } else {
@@ -175,6 +177,8 @@
                 window.canvas.style.top = ((window.innerHeight - 667 * scale) / 2) + 'px';
                 
                 window.canvasScale = scale;
+                window.canvasOffsetLeft = (window.innerWidth - 375 * scale) / 2;
+                window.canvasOffsetTop = (window.innerHeight - 667 * scale) / 2;
                 
                 console.log('Window resized, scale:', scale);
             }

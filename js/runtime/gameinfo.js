@@ -1098,9 +1098,18 @@ class GameInfo extends Emitter {
     console.log('Canvas scale:', window.canvasScale);
     
     // 转换坐标到canvas内部坐标
+    // 1. 先减去canvas的偏移量
+    // 2. 再除以缩放比例
     if (window.canvasScale) {
-      clientX = clientX / window.canvasScale;
-      clientY = clientY / window.canvasScale;
+      // 获取canvas的偏移量
+      const canvasRect = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : null;
+      const offsetX = canvasRect ? canvasRect.left : (window.canvasOffsetLeft || 0);
+      const offsetY = canvasRect ? canvasRect.top : (window.canvasOffsetTop || 0);
+      
+      console.log('Canvas offset - offsetX:', offsetX, 'offsetY:', offsetY);
+      
+      clientX = (clientX - offsetX) / window.canvasScale;
+      clientY = (clientY - offsetY) / window.canvasScale;
       console.log('Converted touch - clientX:', clientX, 'clientY:', clientY);
     }
     
