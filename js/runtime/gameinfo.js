@@ -239,6 +239,7 @@ class GameInfo extends Emitter {
       wx.onTouchStart(this.touchStartHandler.bind(this));
       wx.onTouchEnd(this.touchEndHandler.bind(this));
       wx.onTouchMove(this.touchMoveHandler.bind(this));
+      wx.onTouchCancel(this.touchCancelHandler.bind(this));
     } else if (typeof window !== 'undefined') {
       // 浏览器环境 - 延迟绑定事件，确保canvas已初始化
       const bindEvents = () => {
@@ -247,6 +248,7 @@ class GameInfo extends Emitter {
           canvasElement.addEventListener('touchstart', this.touchStartHandler.bind(this));
           canvasElement.addEventListener('touchend', this.touchEndHandler.bind(this));
           canvasElement.addEventListener('touchmove', this.touchMoveHandler.bind(this));
+          canvasElement.addEventListener('touchcancel', this.touchCancelHandler.bind(this));
           // 同时支持鼠标事件
           canvasElement.addEventListener('mousedown', this.mouseDownHandler.bind(this));
           canvasElement.addEventListener('mouseup', this.mouseUpHandler.bind(this));
@@ -420,13 +422,21 @@ class GameInfo extends Emitter {
     cloudSystem.update();
     cloudSystem.render(ctx);
 
-    // 绘制标题
+    // 绘制标题 - 治愈风格
     this.setFont(ctx, 48, '#ffffff');
     ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 3;
     ctx.fillText('拼豆跳跳消', 375 / 2, 150);
+    // 完全重置阴影效果
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
 
-    // 绘制游戏说明
-    this.setFont(ctx, 16, '#ffffff');
+    // 绘制游戏说明 - 柔和的文字
+    this.setFont(ctx, 16, 'rgba(255, 255, 255, 0.9)');
     ctx.fillText('长按蓄力跳跃', 375 / 2, 200);
     ctx.fillText('收集相同颜色拼豆消除', 375 / 2, 230);
     ctx.fillText('解锁拼豆图鉴', 375 / 2, 260);
@@ -439,7 +449,7 @@ class GameInfo extends Emitter {
     // 绘制设置按钮
     this.drawButton(ctx, '设置', this.btnAreas.settings);
 
-    // 绘制底部广告占位
+    // 绘制底部广告占位 - 圆角设计
     this.drawBannerAd(ctx);
 
     ctx.textAlign = 'left';
@@ -858,20 +868,67 @@ class GameInfo extends Emitter {
     );
   }
 
-  // 渲染蓄力条
+  // 渲染蓄力条 - 治愈风格
   renderPowerBar(ctx) {
     const databus = GameGlobal.databus;
     const player = databus.player;
     
     const power = Math.min((Date.now() - this.touchStartTime) / 10, player.maxPower);
     
-    // 绘制蓄力条背景
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.fillRect(375 / 2 - 100, 70, 200, 20);
+    const barWidth = 200;
+    const barHeight = 20;
+    const barX = 375 / 2 - barWidth / 2;
+    const barY = 70;
+    const radius = 10; // 圆角半径
     
-    // 绘制蓄力条
-    ctx.fillStyle = '#ff6b6b';
-    ctx.fillRect(375 / 2 - 100, 70, (power / player.maxPower) * 200, 20);
+    // 绘制蓄力条背景（圆角矩形）
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.beginPath();
+    ctx.moveTo(barX + radius, barY);
+    ctx.lineTo(barX + barWidth - radius, barY);
+    ctx.quadraticCurveTo(barX + barWidth, barY, barX + barWidth, barY + radius);
+    ctx.lineTo(barX + barWidth, barY + barHeight - radius);
+    ctx.quadraticCurveTo(barX + barWidth, barY + barHeight, barX + barWidth - radius, barY + barHeight);
+    ctx.lineTo(barX + radius, barY + barHeight);
+    ctx.quadraticCurveTo(barX, barY + barHeight, barX, barY + barHeight - radius);
+    ctx.lineTo(barX, barY + radius);
+    ctx.quadraticCurveTo(barX, barY, barX + radius, barY);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 绘制细黑边框
+    ctx.strokeStyle = '#333333';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(barX + radius, barY);
+    ctx.lineTo(barX + barWidth - radius, barY);
+    ctx.quadraticCurveTo(barX + barWidth, barY, barX + barWidth, barY + radius);
+    ctx.lineTo(barX + barWidth, barY + barHeight - radius);
+    ctx.quadraticCurveTo(barX + barWidth, barY + barHeight, barX + barWidth - radius, barY + barHeight);
+    ctx.lineTo(barX + radius, barY + barHeight);
+    ctx.quadraticCurveTo(barX, barY + barHeight, barX, barY + barHeight - radius);
+    ctx.lineTo(barX, barY + radius);
+    ctx.quadraticCurveTo(barX, barY, barX + radius, barY);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // 绘制蓄力条（圆角矩形）
+    const powerWidth = (power / player.maxPower) * (barWidth - 4);
+    if (powerWidth > 0) {
+      ctx.fillStyle = '#FFB6C1'; // 浅粉红，马卡龙色
+      ctx.beginPath();
+      ctx.moveTo(barX + 2 + radius, barY + 2);
+      ctx.lineTo(barX + 2 + powerWidth - radius, barY + 2);
+      ctx.quadraticCurveTo(barX + 2 + powerWidth, barY + 2, barX + 2 + powerWidth, barY + 2 + radius);
+      ctx.lineTo(barX + 2 + powerWidth, barY + barHeight - 2 - radius);
+      ctx.quadraticCurveTo(barX + 2 + powerWidth, barY + barHeight - 2, barX + 2 + powerWidth - radius, barY + barHeight - 2);
+      ctx.lineTo(barX + 2 + radius, barY + barHeight - 2);
+      ctx.quadraticCurveTo(barX + 2, barY + barHeight - 2, barX + 2, barY + barHeight - 2 - radius);
+      ctx.lineTo(barX + 2, barY + 2 + radius);
+      ctx.quadraticCurveTo(barX + 2, barY + 2, barX + 2 + radius, barY + 2);
+      ctx.closePath();
+      ctx.fill();
+    }
     
     // 绘制蓄力值
     this.setFont(ctx, 14, '#333333');
@@ -879,7 +936,7 @@ class GameInfo extends Emitter {
     ctx.fillText(`${Math.floor(power)}%`, 375 / 2, 85);
   }
 
-  // 渲染收集的拼豆
+  // 渲染收集的拼豆 - 治愈风格
   renderCollectedBeans(ctx) {
     const databus = GameGlobal.databus;
     const collected = databus.collectedBeans;
@@ -890,15 +947,50 @@ class GameInfo extends Emitter {
     const barHeight = 45;
     const barX = 20;
     const barY = 667 - 120; // 上移到道具栏上方
+    const radius = 10; // 圆角半径
     
-    // 绘制栏背景
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.fillRect(barX, barY, barWidth, barHeight);
+    // 绘制圆角矩形背景
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.beginPath();
+    ctx.moveTo(barX + radius, barY);
+    ctx.lineTo(barX + barWidth - radius, barY);
+    ctx.quadraticCurveTo(barX + barWidth, barY, barX + barWidth, barY + radius);
+    ctx.lineTo(barX + barWidth, barY + barHeight - radius);
+    ctx.quadraticCurveTo(barX + barWidth, barY + barHeight, barX + barWidth - radius, barY + barHeight);
+    ctx.lineTo(barX + radius, barY + barHeight);
+    ctx.quadraticCurveTo(barX, barY + barHeight, barX, barY + barHeight - radius);
+    ctx.lineTo(barX, barY + radius);
+    ctx.quadraticCurveTo(barX, barY, barX + radius, barY);
+    ctx.closePath();
+    ctx.fill();
     
-    // 绘制栏边框
+    // 绘制细黑边框
     ctx.strokeStyle = '#333333';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(barX, barY, barWidth, barHeight);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(barX + radius, barY);
+    ctx.lineTo(barX + barWidth - radius, barY);
+    ctx.quadraticCurveTo(barX + barWidth, barY, barX + barWidth, barY + radius);
+    ctx.lineTo(barX + barWidth, barY + barHeight - radius);
+    ctx.quadraticCurveTo(barX + barWidth, barY + barHeight, barX + barWidth - radius, barY + barHeight);
+    ctx.lineTo(barX + radius, barY + barHeight);
+    ctx.quadraticCurveTo(barX, barY + barHeight, barX, barY + barHeight - radius);
+    ctx.lineTo(barX, barY + radius);
+    ctx.quadraticCurveTo(barX, barY, barX + radius, barY);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // 马卡龙低饱和颜色数组
+    const macaronColors = [
+      '#FFB6C1', // 浅粉红
+      '#87CEFA', // 浅天蓝
+      '#98FB98', // 浅绿
+      '#FFFFE0', // 浅黄色
+      '#D8BFD8', // 淡紫色
+      '#FFDAB9', // 桃色
+      '#E0FFFF', // 浅青色
+      '#F0E68C'  // 卡其色
+    ];
     
     // 绘制拼豆
     const beanSize = 30;
@@ -909,14 +1001,21 @@ class GameInfo extends Emitter {
       const y = barY + (barHeight - beanSize) / 2;
       
       if (i < collected.length) {
-        // 绘制有颜色的拼豆
-        ctx.fillStyle = collected[i];
+        // 绘制有颜色的拼豆 - 使用马卡龙颜色
+        const colorIndex = i % macaronColors.length;
+        ctx.fillStyle = macaronColors[colorIndex];
         ctx.beginPath();
         ctx.arc(x + beanSize / 2, y + beanSize / 2, beanSize / 2, 0, Math.PI * 2);
         ctx.fill();
+        
+        // 绘制拼豆高光，增加立体感
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.beginPath();
+        ctx.arc(x + beanSize / 3, y + beanSize / 3, beanSize / 6, 0, Math.PI * 2);
+        ctx.fill();
       } else {
         // 绘制空位置
-        ctx.strokeStyle = '#cccccc';
+        ctx.strokeStyle = '#CCCCCC';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(x + beanSize / 2, y + beanSize / 2, beanSize / 2, 0, Math.PI * 2);
@@ -937,19 +1036,41 @@ class GameInfo extends Emitter {
     this.drawItemButton(ctx, 'extraBean', items.extraBean, this.btnAreas.extraBean);
   }
 
-  // 绘制道具按钮
+  // 绘制道具按钮 - 治愈风格圆角设计
   drawItemButton(ctx, itemType, count, area) {
     const buttonWidth = area.endX - area.startX;
     const buttonHeight = area.endY - area.startY;
+    const radius = 12; // 圆角半径
     
-    // 绘制按钮背景
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.fillRect(area.startX, area.startY, buttonWidth, buttonHeight);
+    // 绘制按钮背景（圆角矩形）
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.beginPath();
+    ctx.moveTo(area.startX + radius, area.startY);
+    ctx.lineTo(area.endX - radius, area.startY);
+    ctx.quadraticCurveTo(area.endX, area.startY, area.endX, area.startY + radius);
+    ctx.lineTo(area.endX, area.endY - radius);
+    ctx.quadraticCurveTo(area.endX, area.endY, area.endX - radius, area.endY);
+    ctx.lineTo(area.startX + radius, area.endY);
+    ctx.quadraticCurveTo(area.startX, area.endY, area.startX, area.endY - radius);
+    ctx.lineTo(area.startX, area.startY + radius);
+    ctx.quadraticCurveTo(area.startX, area.startY, area.startX + radius, area.startY);
+    ctx.closePath();
+    ctx.fill();
     
-    // 绘制按钮边框
-    ctx.strokeStyle = '#333333';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(area.startX, area.startY, buttonWidth, buttonHeight);
+    // 绘制柔和的阴影
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.beginPath();
+    ctx.moveTo(area.startX + radius, area.startY + 2);
+    ctx.lineTo(area.endX - radius, area.startY + 2);
+    ctx.quadraticCurveTo(area.endX, area.startY + 2, area.endX, area.startY + radius + 2);
+    ctx.lineTo(area.endX, area.endY - radius + 2);
+    ctx.quadraticCurveTo(area.endX, area.endY + 2, area.endX - radius, area.endY + 2);
+    ctx.lineTo(area.startX + radius, area.endY + 2);
+    ctx.quadraticCurveTo(area.startX, area.endY + 2, area.startX, area.endY - radius + 2);
+    ctx.lineTo(area.startX, area.startY + radius + 2);
+    ctx.quadraticCurveTo(area.startX, area.startY + 2, area.startX + radius, area.startY + 2);
+    ctx.closePath();
+    ctx.fill();
     
     // 绘制道具图片（从精灵图裁剪）
     // 微信小游戏使用 width/height，浏览器使用 naturalWidth/naturalHeight
@@ -989,7 +1110,7 @@ class GameInfo extends Emitter {
     
     // 绘制道具数量（右下角）
     ctx.font = 'bold 14px Arial';
-    ctx.fillStyle = '#333333';
+    ctx.fillStyle = '#666666';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
     ctx.fillText(`x${count}`, area.endX - 5, area.endY - 3);
@@ -1152,33 +1273,83 @@ class GameInfo extends Emitter {
   }
 
   // 绘制按钮
+  // 绘制治愈风圆角按钮
   drawButton(ctx, text, area) {
-    // 绘制按钮背景
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.fillRect(area.startX, area.startY, area.endX - area.startX, area.endY - area.startY);
+    const width = area.endX - area.startX;
+    const height = area.endY - area.startY;
+    const radius = 20; // 圆角半径
     
-    // 绘制按钮边框
-    ctx.strokeStyle = '#333333';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(area.startX, area.startY, area.endX - area.startX, area.endY - area.startY);
+    // 绘制按钮背景（圆角矩形）
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.beginPath();
+    ctx.moveTo(area.startX + radius, area.startY);
+    ctx.lineTo(area.endX - radius, area.startY);
+    ctx.quadraticCurveTo(area.endX, area.startY, area.endX, area.startY + radius);
+    ctx.lineTo(area.endX, area.endY - radius);
+    ctx.quadraticCurveTo(area.endX, area.endY, area.endX - radius, area.endY);
+    ctx.lineTo(area.startX + radius, area.endY);
+    ctx.quadraticCurveTo(area.startX, area.endY, area.startX, area.endY - radius);
+    ctx.lineTo(area.startX, area.startY + radius);
+    ctx.quadraticCurveTo(area.startX, area.startY, area.startX + radius, area.startY);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 绘制柔和的阴影
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.beginPath();
+    ctx.moveTo(area.startX + radius, area.startY + 3);
+    ctx.lineTo(area.endX - radius, area.startY + 3);
+    ctx.quadraticCurveTo(area.endX, area.startY + 3, area.endX, area.startY + radius + 3);
+    ctx.lineTo(area.endX, area.endY - radius + 3);
+    ctx.quadraticCurveTo(area.endX, area.endY + 3, area.endX - radius, area.endY + 3);
+    ctx.lineTo(area.startX + radius, area.endY + 3);
+    ctx.quadraticCurveTo(area.startX, area.endY + 3, area.startX, area.endY - radius + 3);
+    ctx.lineTo(area.startX, area.startY + radius + 3);
+    ctx.quadraticCurveTo(area.startX, area.startY + 3, area.startX + radius, area.startY + 3);
+    ctx.closePath();
+    ctx.fill();
     
     // 绘制按钮文本
-    this.setFont(ctx, 20, '#333333');
+    this.setFont(ctx, 20, '#666666');
     ctx.textAlign = 'center';
     ctx.fillText(text, (area.startX + area.endX) / 2, (area.startY + area.endY) / 2 + 5);
   }
 
-  // 绘制底部广告占位
+  // 绘制底部广告占位 - 治愈风格圆角设计
   drawBannerAd(ctx) {
     const adHeight = 60;
     const adY = 667 - adHeight;
+    const radius = 15; // 圆角半径
     
-    ctx.fillStyle = '#e0e0e0';
-    ctx.fillRect(0, adY, 375, adHeight);
+    // 绘制圆角矩形背景
+    ctx.fillStyle = 'rgba(224, 224, 224, 0.9)';
+    ctx.beginPath();
+    ctx.moveTo(radius, adY);
+    ctx.lineTo(375 - radius, adY);
+    ctx.quadraticCurveTo(375, adY, 375, adY + radius);
+    ctx.lineTo(375, adY + adHeight - radius);
+    ctx.quadraticCurveTo(375, adY + adHeight, 375 - radius, adY + adHeight);
+    ctx.lineTo(radius, adY + adHeight);
+    ctx.quadraticCurveTo(0, adY + adHeight, 0, adY + adHeight - radius);
+    ctx.lineTo(0, adY + radius);
+    ctx.quadraticCurveTo(0, adY, radius, adY);
+    ctx.closePath();
+    ctx.fill();
     
-    ctx.strokeStyle = '#999999';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(0, adY, 375, adHeight);
+    // 绘制柔和的阴影
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.beginPath();
+    ctx.moveTo(radius, adY + 2);
+    ctx.lineTo(375 - radius, adY + 2);
+    ctx.quadraticCurveTo(375, adY + 2, 375, adY + radius + 2);
+    ctx.lineTo(375, adY + adHeight - radius + 2);
+    ctx.quadraticCurveTo(375, adY + adHeight + 2, 375 - radius, adY + adHeight + 2);
+    ctx.lineTo(radius, adY + adHeight + 2);
+    ctx.quadraticCurveTo(0, adY + adHeight + 2, 0, adY + adHeight - radius + 2);
+    ctx.lineTo(0, adY + radius + 2);
+    ctx.quadraticCurveTo(0, adY + 2, radius, adY + 2);
+    ctx.closePath();
+    ctx.fill();
     
     this.setFont(ctx, 14, '#666666');
     ctx.textAlign = 'center';
@@ -1398,10 +1569,26 @@ class GameInfo extends Emitter {
       this.handlePlayingTouchEnd();
     }
   }
+  
+  // 处理触摸取消（系统取消触摸事件）
+  touchCancelHandler(event) {
+    console.log('Touch cancelled - resetting touch state');
+    // 重置触摸状态，防止状态卡住
+    this.isTouching = false;
+    this.touchStartTime = 0;
+  }
 
   // 处理游戏中触摸开始
   handlePlayingTouchStart(x, y) {
     const databus = GameGlobal.databus;
+    
+    // 安全检查：如果isTouching已经是true，先重置状态
+    // 这可以防止状态卡住的问题
+    if (this.isTouching) {
+      console.log('Warning: isTouching already true, resetting state');
+      this.isTouching = false;
+      this.touchStartTime = 0;
+    }
     
     // 检查是否点击了道具
     if (this.checkItemTouch(x, y)) {
