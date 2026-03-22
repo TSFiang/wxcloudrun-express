@@ -57,12 +57,6 @@ class Main {
     GameGlobal.feedbackManager = new FeedbackManager();
     GameGlobal.main = this;
     
-    // 初始化用户认证管理器
-    if (typeof AuthManager !== 'undefined') {
-      GameGlobal.authManager = new AuthManager();
-      console.log('用户认证管理器初始化完成');
-    }
-    
     // 初始化成就管理器
     if (typeof AchievementManager !== 'undefined') {
       GameGlobal.achievementManager = new AchievementManager();

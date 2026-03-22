@@ -8,7 +8,6 @@ if (typeof wx !== 'undefined' && typeof wx.createCanvas !== 'undefined') {
     require('./js/runtime/logger.js');
     require('./js/runtime/resourceloader.js');
     require('./js/runtime/admanager.js');
-    require('./js/runtime/authmanager.js');
     require('./js/runtime/achievementmanager.js');
     require('./js/render.js');
     require('./js/databus.js');
