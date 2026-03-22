@@ -49,6 +49,10 @@ const platformFrames = {
   danger: { x: 0, y: 0.8 }
 };
 
+// 加载起始平台图片
+const startPlatformImage = createImage();
+startPlatformImage.src = 'images/image_148523117485869.png';
+
 // 云朵系统
 class CloudSystem {
   constructor() {
@@ -753,46 +757,42 @@ class GameInfo extends Emitter {
     }
   }
   
-  // 渲染山形起始平台
+  // 渲染拼豆主题起始平台
   renderMountainPlatform(ctx, platform) {
     const x = platform.x;
     const y = platform.y;
     const width = platform.size;
     
-    // 绘制山形（使用渐变色）
-    const gradient = ctx.createLinearGradient(x, y, x, y + 100);
-    gradient.addColorStop(0, '#8B4513'); // 棕色山顶
-    gradient.addColorStop(0.5, '#A0522D'); // 赭色山腰
-    gradient.addColorStop(1, '#654321'); // 深棕色山底
-    
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    
-    // 绘制山峰形状
-    ctx.moveTo(x, y + 100); // 左下角
-    ctx.lineTo(x + width * 0.2, y + 30); // 左侧山腰
-    ctx.lineTo(x + width * 0.35, y + 50); // 左侧小峰
-    ctx.lineTo(x + width * 0.5, y); // 山顶
-    ctx.lineTo(x + width * 0.65, y + 50); // 右侧小峰
-    ctx.lineTo(x + width * 0.8, y + 30); // 右侧山腰
-    ctx.lineTo(x + width, y + 100); // 右下角
-    ctx.closePath();
-    ctx.fill();
-    
-    // 绘制山顶平台（玩家站立区域）
-    ctx.fillStyle = '#90EE90'; // 浅绿色草地
-    ctx.fillRect(x + width * 0.3, y - 5, width * 0.4, 15);
-    
-    // 添加一些装饰（小草）
-    ctx.strokeStyle = '#228B22'; // 深绿色
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 5; i++) {
-      const grassX = x + width * 0.3 + i * (width * 0.4 / 5);
-      const grassY = y - 5;
+    // 尝试使用图片渲染
+    if (startPlatformImage && startPlatformImage.complete && startPlatformImage.width > 0) {
+      // 计算缩放比例
+      const scale = width / 350; // 图片原始宽度350px
+      const imageHeight = 180 * scale; // 图片原始高度180px
+      
+      // 绘制起始平台图片
+      ctx.drawImage(
+        startPlatformImage,
+        x,
+        y - imageHeight + 20, // 调整垂直位置，让平台顶部与玩家站立位置对齐
+        width,
+        imageHeight
+      );
+    } else {
+      // 图片未加载时的后备方案
+      const gradient = ctx.createLinearGradient(x, y, x, y + 80);
+      gradient.addColorStop(0, '#FFD700');
+      gradient.addColorStop(1, '#FFA500');
+      
+      ctx.fillStyle = gradient;
       ctx.beginPath();
-      ctx.moveTo(grassX, grassY);
-      ctx.lineTo(grassX + 3, grassY - 8);
-      ctx.stroke();
+      ctx.moveTo(x, y + 80);
+      ctx.lineTo(x + width * 0.5, y);
+      ctx.lineTo(x + width, y + 80);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.fillStyle = '#90EE90';
+      ctx.fillRect(x + width * 0.3, y - 5, width * 0.4, 15);
     }
   }
 
