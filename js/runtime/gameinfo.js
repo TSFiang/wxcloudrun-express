@@ -24,6 +24,18 @@ backgroundImage.src = 'images/image_695435480469248.png';
 const playerSpriteSheet = createImage();
 playerSpriteSheet.src = 'images/image_720350330364146.png';
 
+// 加载道具图片
+const itemImages = {
+  shield: createImage(),
+  rainbow: createImage(),
+  doubleScore: createImage(),
+  extraBean: createImage()
+};
+itemImages.shield.src = 'images/image_106693423325902.png';
+itemImages.rainbow.src = 'images/image_106693423325902.png'; // 暂时使用同一张，后续替换
+itemImages.doubleScore.src = 'images/image_106693423325902.png'; // 暂时使用同一张，后续替换
+itemImages.extraBean.src = 'images/image_106693423325902.png'; // 暂时使用同一张，后续替换
+
 // 云朵系统
 class CloudSystem {
   constructor() {
@@ -885,37 +897,53 @@ class GameInfo extends Emitter {
     const databus = GameGlobal.databus;
     const items = databus.items;
     
-    // 绘制道具按钮
-    this.drawItemButton(ctx, '🛡️', items.shield, this.btnAreas.shield);
-    this.drawItemButton(ctx, '🌈', items.rainbow, this.btnAreas.rainbow);
-    this.drawItemButton(ctx, '2x', items.doubleScore, this.btnAreas.doubleScore);
-    this.drawItemButton(ctx, '🫘', items.extraBean, this.btnAreas.extraBean);
+    // 绘制道具按钮（使用图片）
+    this.drawItemButton(ctx, 'shield', items.shield, this.btnAreas.shield);
+    this.drawItemButton(ctx, 'rainbow', items.rainbow, this.btnAreas.rainbow);
+    this.drawItemButton(ctx, 'doubleScore', items.doubleScore, this.btnAreas.doubleScore);
+    this.drawItemButton(ctx, 'extraBean', items.extraBean, this.btnAreas.extraBean);
   }
 
   // 绘制道具按钮
-  drawItemButton(ctx, icon, count, area) {
+  drawItemButton(ctx, itemType, count, area) {
+    const buttonWidth = area.endX - area.startX;
+    const buttonHeight = area.endY - area.startY;
+    
     // 绘制按钮背景
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.fillRect(area.startX, area.startY, area.endX - area.startX, area.endY - area.startY);
+    ctx.fillRect(area.startX, area.startY, buttonWidth, buttonHeight);
     
     // 绘制按钮边框
     ctx.strokeStyle = '#333333';
     ctx.lineWidth = 2;
-    ctx.strokeRect(area.startX, area.startY, area.endX - area.startX, area.endY - area.startY);
+    ctx.strokeRect(area.startX, area.startY, buttonWidth, buttonHeight);
     
-    // 绘制道具图标
-    ctx.font = 'bold 28px Arial';
-    ctx.fillStyle = '#333333';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(icon, (area.startX + area.endX) / 2, (area.startY + area.endY) / 2);
+    // 绘制道具图片
+    const img = itemImages[itemType];
+    if (img && img.complete && img.naturalWidth > 0) {
+      // 计算图片绘制尺寸（保持比例，居中显示）
+      const imgSize = Math.min(buttonWidth, buttonHeight) - 10;
+      const imgX = area.startX + (buttonWidth - imgSize) / 2;
+      const imgY = area.startY + (buttonHeight - imgSize) / 2 - 5;
+      ctx.drawImage(img, imgX, imgY, imgSize, imgSize);
+    } else {
+      // 图片未加载时显示占位符
+      ctx.font = 'bold 24px Arial';
+      ctx.fillStyle = '#999999';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const placeholder = itemType === 'shield' ? '🛡️' : 
+                         itemType === 'rainbow' ? '🌈' : 
+                         itemType === 'doubleScore' ? '2x' : '🫘';
+      ctx.fillText(placeholder, (area.startX + area.endX) / 2, (area.startY + area.endY) / 2 - 5);
+    }
     
-    // 绘制道具数量
-    ctx.font = 'bold 16px Arial';
+    // 绘制道具数量（右下角）
+    ctx.font = 'bold 14px Arial';
     ctx.fillStyle = '#333333';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
-    ctx.fillText(count, area.endX - 5, area.endY - 5);
+    ctx.fillText(`x${count}`, area.endX - 5, area.endY - 3);
   }
   
   // 渲染图鉴道具
