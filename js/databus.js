@@ -455,9 +455,9 @@ class DataBus {
     }
   }
 
-  // 获取随机颜色
+  // 获取随机颜色（与收集拼豆颜色一致）
   getRandomColor() {
-    const colors = ['red', 'yellow', 'blue', 'green', 'purple'];
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
     return colors[Math.floor(Math.random() * colors.length)];
   }
 
