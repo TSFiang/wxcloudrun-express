@@ -57,6 +57,18 @@ class Main {
     GameGlobal.feedbackManager = new FeedbackManager();
     GameGlobal.main = this;
     
+    // 初始化用户认证管理器
+    if (typeof AuthManager !== 'undefined') {
+      GameGlobal.authManager = new AuthManager();
+      console.log('用户认证管理器初始化完成');
+    }
+    
+    // 初始化成就管理器
+    if (typeof AchievementManager !== 'undefined') {
+      GameGlobal.achievementManager = new AchievementManager();
+      console.log('成就管理器初始化完成');
+    }
+    
     // 初始化广告管理器
     if (typeof AdManager !== 'undefined') {
       GameGlobal.adManager = new AdManager();
@@ -67,6 +79,7 @@ class Main {
     this.gameInfo.on('startGame', this.startGame.bind(this));
     this.gameInfo.on('collection', this.showCollection.bind(this));
     this.gameInfo.on('leaderboard', this.showLeaderboard.bind(this));
+    this.gameInfo.on('achievement', this.showAchievement.bind(this));
     this.gameInfo.on('settings', this.showSettings.bind(this));
     this.gameInfo.on('backToMenu', this.backToMenu.bind(this));
     this.gameInfo.on('restart', this.restart.bind(this));
@@ -113,8 +126,16 @@ class Main {
     GameGlobal.databus.gameState = 'menu';
   }
 
+  showAchievement() {
+    GameGlobal.databus.gameState = 'achievement';
+  }
+
   showSettings() {
     GameGlobal.databus.gameState = 'settings';
+  }
+  
+  showAchievement() {
+    GameGlobal.databus.gameState = 'achievement';
   }
 
   backToMenu() {

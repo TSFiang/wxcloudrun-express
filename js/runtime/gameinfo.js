@@ -165,6 +165,12 @@ class GameInfo extends Emitter {
         endX: 287.5,
         endY: 483.5, // (667 / 2 + 150)
       },
+      achievement: {
+        startX: 87.5,
+        startY: 513.5, // (667 / 2 + 180)
+        endX: 287.5,
+        endY: 563.5, // (667 / 2 + 230)
+      },
       settings: {
         startX: 20,
         startY: 20,
@@ -295,6 +301,9 @@ class GameInfo extends Emitter {
       case 'collection':
         this.renderCollection(ctx);
         break;
+      case 'achievement':
+        this.renderAchievement(ctx);
+        break;
       case 'settings':
         this.renderSettings(ctx);
         break;
@@ -358,6 +367,103 @@ class GameInfo extends Emitter {
     
     // 绘制返回按钮
     this.drawButton(ctx, '返回', this.btnAreas.backToMenu);
+  }
+  
+  // 渲染成就界面
+  renderAchievement(ctx) {
+    const achievementManager = GameGlobal.achievementManager;
+    
+    if (!achievementManager) {
+      console.log('AchievementManager not initialized');
+      return;
+    }
+    
+    // 绘制背景图片
+    ctx.drawImage(backgroundImage, 0, 0, 375, 667);
+    
+    // 绘制标题
+    this.setFont(ctx, 36, '#000000');
+    ctx.textAlign = 'center';
+    ctx.fillText('成就', 375 / 2, 50);
+    
+    // 获取所有成就
+    const allAchievements = achievementManager.getAllAchievements();
+    const unlockedCount = achievementManager.getUnlockedAchievements().length;
+    const totalCount = allAchievements.length;
+    
+    // 绘制进度
+    this.setFont(ctx, 16, '#666666');
+    ctx.fillText(`已解锁: ${unlockedCount}/${totalCount}`, 375 / 2, 80);
+    
+    // 绘制成就列表（滚动显示）
+    const startY = 110;
+    const itemHeight = 80;
+    const visibleCount = 7;
+    
+    // 绘制成就项
+    allAchievements.forEach((achievement, index) => {
+      const y = startY + index * itemHeight;
+      
+      if (y > 667 - 60) return; // 超出屏幕范围
+      
+      // 绘制成就背景
+      if (achievement.unlocked) {
+        ctx.fillStyle = 'rgba(100, 200, 100, 0.3)';
+      } else {
+        ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+      }
+      ctx.fillRect(20, y, 335, itemHeight - 5);
+      
+      // 绘制边框
+      ctx.strokeStyle = achievement.unlocked ? '#4CAF50' : '#CCCCCC';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(20, y, 335, itemHeight - 5);
+      
+      // 绘制图标
+      this.setFont(ctx, 30, '#000000');
+      ctx.textAlign = 'left';
+      ctx.fillText(achievement.icon, 30, y + 45);
+      
+      // 绘制名称
+      this.setFont(ctx, 16, '#000000');
+      ctx.fillText(achievement.name, 70, y + 25);
+      
+      // 绘制描述
+      this.setFont(ctx, 12, '#666666');
+      ctx.fillText(achievement.description, 70, y + 45);
+      
+      // 绘制进度条
+      if (!achievement.unlocked) {
+        const progress = achievementManager.getAchievementProgress(achievement);
+        const barWidth = 200;
+        const barHeight = 8;
+        const barX = 70;
+        const barY = y + 55;
+        
+        // 进度条背景
+        ctx.fillStyle = '#E0E0E0';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        
+        // 进度条填充
+        ctx.fillStyle = '#FFB6C1';
+        ctx.fillRect(barX, barY, barWidth * (progress.percentage / 100), barHeight);
+        
+        // 进度文字
+        this.setFont(ctx, 10, '#666666');
+        ctx.textAlign = 'right';
+        ctx.fillText(`${progress.current}/${progress.target}`, 345, y + 65);
+      } else {
+        // 已解锁标记
+        this.setFont(ctx, 12, '#4CAF50');
+        ctx.textAlign = 'right';
+        ctx.fillText('✓ 已解锁', 345, y + 65);
+      }
+    });
+    
+    // 绘制返回按钮
+    this.drawButton(ctx, '返回', this.btnAreas.backToMenu);
+    
+    ctx.textAlign = 'left';
   }
   
   // 渲染暂停界面
@@ -445,6 +551,7 @@ class GameInfo extends Emitter {
     this.drawButton(ctx, '开始游戏', this.btnAreas.startGame);
     this.drawButton(ctx, '我的图鉴', this.btnAreas.collection);
     this.drawButton(ctx, '排行榜', this.btnAreas.leaderboard);
+    this.drawButton(ctx, '成就', this.btnAreas.achievement);
 
     // 绘制设置按钮
     this.drawButton(ctx, '设置', this.btnAreas.settings);
@@ -1671,6 +1778,9 @@ class GameInfo extends Emitter {
     } else if (this.isInArea(x, y, this.btnAreas.leaderboard)) {
       console.log('leaderboard button clicked');
       this.emit('leaderboard');
+    } else if (this.isInArea(x, y, this.btnAreas.achievement)) {
+      console.log('achievement button clicked');
+      this.emit('achievement');
     } else if (this.isInArea(x, y, this.btnAreas.settings)) {
       console.log('settings button clicked');
       this.emit('settings');

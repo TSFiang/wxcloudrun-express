@@ -657,6 +657,12 @@ class DataBus {
       
       // 增加分数
       this.score += 5;
+      
+      // 更新成就统计：图鉴收集
+      if (GameGlobal.achievementManager) {
+        GameGlobal.achievementManager.updateStats('gallery', 1);
+      }
+      
       return true;
     }
     return false;
@@ -800,6 +806,11 @@ class DataBus {
       
       // 触发跳跃反馈
       this.triggerJumpFeedback();
+      
+      // 更新成就统计：跳跃次数
+      if (GameGlobal.achievementManager) {
+        GameGlobal.achievementManager.updateStats('jump', 1);
+      }
     }
   }
   
@@ -1035,6 +1046,16 @@ class DataBus {
                 }
                 this.score += scoreGain;
                 
+                // 更新成就统计：分数
+                if (GameGlobal.achievementManager) {
+                  GameGlobal.achievementManager.updateStats('score', scoreGain);
+                  
+                  // 检查完美跳跃成就（单次跳跃获得50分以上）
+                  if (scoreGain >= 50) {
+                    GameGlobal.achievementManager.updateStats('perfectJump', scoreGain);
+                  }
+                }
+                
                 // 增加平台速度
                 this.platformSpeed = 1 + Math.min(this.score * 0.005, 3);
                 
@@ -1070,6 +1091,11 @@ class DataBus {
   collectBean(color) {
     // 先添加拼豆（允许临时超过最大数量）
     this.collectedBeans.push(color);
+    
+    // 更新成就统计：收集拼豆
+    if (GameGlobal.achievementManager) {
+      GameGlobal.achievementManager.updateStats('collect', 1);
+    }
     
     // 立即检查并消除
     this.checkCollection();
@@ -1117,6 +1143,11 @@ class DataBus {
         
         // 消除成功，奖励一个道具
         this.giveRandomItem();
+        
+        // 更新成就统计：消除次数
+        if (GameGlobal.achievementManager) {
+          GameGlobal.achievementManager.updateStats('match', 1);
+        }
         
         // 检查是否解锁拼豆图鉴
         this.checkBeanCollection();
@@ -1224,11 +1255,19 @@ class DataBus {
           // 护盾：激活护盾保护，失误一次不掉落
           this.hasShield = true;
           console.log('护盾已激活！');
+          // 更新成就统计：护盾使用
+          if (GameGlobal.achievementManager) {
+            GameGlobal.achievementManager.updateStats('shield', 1);
+          }
           break;
           
         case 'rainbow':
           // 彩虹：随机当作任意颜色，直接凑3消
           this.useRainbow();
+          // 更新成就统计：彩虹使用
+          if (GameGlobal.achievementManager) {
+            GameGlobal.achievementManager.updateStats('rainbow', 1);
+          }
           break;
           
         case 'doubleScore':
