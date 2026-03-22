@@ -100,30 +100,30 @@ class GameInfo extends Emitter {
         endX: 100,
         endY: 60,
       },
-      // 道具按钮
+      // 道具按钮（增大点击区域）
       shield: {
-        startX: 40,
-        startY: 507, // (667 - 160)
-        endX: 80,
-        endY: 547, // (667 - 120)
+        startX: 20,
+        startY: 597, // (667 - 70)
+        endX: 90,
+        endY: 657, // (667 - 10)
       },
       rainbow: {
         startX: 100,
-        startY: 507,
-        endX: 140,
-        endY: 547,
+        startY: 597,
+        endX: 170,
+        endY: 657,
       },
       doubleScore: {
-        startX: 160,
-        startY: 507,
-        endX: 200,
-        endY: 547,
+        startX: 180,
+        startY: 597,
+        endX: 250,
+        endY: 657,
       },
       extraBean: {
-        startX: 220,
-        startY: 507,
-        endX: 260,
-        endY: 547,
+        startX: 260,
+        startY: 597,
+        endX: 330,
+        endY: 657,
       },
       // 暂停按钮
       pause: {
@@ -1230,20 +1230,31 @@ class GameInfo extends Emitter {
   checkItemTouch(x, y) {
     const databus = GameGlobal.databus;
     
+    console.log('checkItemTouch - x:', x, 'y:', y);
+    console.log('shield area:', this.btnAreas.shield);
+    console.log('rainbow area:', this.btnAreas.rainbow);
+    console.log('doubleScore area:', this.btnAreas.doubleScore);
+    console.log('extraBean area:', this.btnAreas.extraBean);
+    
     if (this.isInArea(x, y, this.btnAreas.shield)) {
+      console.log('点击了护盾道具');
       databus.useItem('shield');
       return true;
     } else if (this.isInArea(x, y, this.btnAreas.rainbow)) {
+      console.log('点击了彩虹道具');
       databus.useItem('rainbow');
       return true;
     } else if (this.isInArea(x, y, this.btnAreas.doubleScore)) {
+      console.log('点击了双倍分数道具');
       databus.useItem('doubleScore');
       return true;
     } else if (this.isInArea(x, y, this.btnAreas.extraBean)) {
+      console.log('点击了额外拼豆道具');
       databus.useItem('extraBean');
       return true;
     }
     
+    console.log('未点击道具区域');
     return false;
   }
 

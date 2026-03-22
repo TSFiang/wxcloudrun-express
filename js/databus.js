@@ -1052,6 +1052,8 @@ class DataBus {
 
   // 使用道具
   useItem(type) {
+    console.log('useItem called with type:', type, 'current count:', this.items[type]);
+    
     if (this.items[type] > 0) {
       this.items[type]--;
       
@@ -1084,6 +1086,8 @@ class DataBus {
       
       return true;
     }
+    
+    console.log('道具数量不足，无法使用');
     return false;
   }
   
