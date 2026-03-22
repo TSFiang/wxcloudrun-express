@@ -171,6 +171,13 @@ class GameInfo extends Emitter {
         endX: 80,
         endY: 60,
       },
+      // 登录按钮
+      login: {
+        startX: 20,
+        startY: 20,
+        endX: 100,
+        endY: 60,
+      },
       // 游戏结束按钮
       restart: {
         startX: 107.5, // (375 / 2 - 80)
@@ -377,6 +384,59 @@ class GameInfo extends Emitter {
     
     ctx.textAlign = 'left';
   }
+
+  // 渲染用户登录状态
+  renderUserLoginStatus(ctx) {
+    const authManager = GameGlobal.authManager;
+    
+    if (!authManager) {
+      return;
+    }
+    
+    const isLoggedIn = authManager.isLoggedIn;
+    const userInfo = authManager.userInfo;
+    
+    // 绘制用户头像和昵称
+    const avatarSize = 40;
+    const avatarX = 20;
+    const avatarY = 20;
+    
+    if (isLoggedIn && userInfo) {
+      // 已登录：显示头像和昵称
+      // 绘制头像背景（圆角矩形）
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.beginPath();
+      ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // 绘制头像
+      if (userInfo.avatarUrl) {
+        const avatarImg = createImage();
+        avatarImg.src = userInfo.avatarUrl;
+        if (avatarImg.complete) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.drawImage(avatarImg, avatarX, avatarY, avatarSize, avatarSize);
+          ctx.restore();
+        }
+      }
+      
+      // 绘制昵称
+      this.setFont(ctx, 14, '#333333');
+      ctx.textAlign = 'left';
+      ctx.fillText(userInfo.nickName || '用户', avatarX + avatarSize + 10, avatarY + avatarSize / 2 + 5);
+    } else {
+      // 未登录：显示登录按钮
+      this.drawButton(ctx, '登录', {
+        startX: avatarX,
+        startY: avatarY,
+        endX: avatarX + 80,
+        endY: avatarY + 40
+      });
+    }
+  }
   
   // 渲染教程提示
   renderTutorial(ctx) {
@@ -440,6 +500,9 @@ class GameInfo extends Emitter {
     ctx.fillText('长按蓄力跳跃', 375 / 2, 200);
     ctx.fillText('收集相同颜色拼豆消除', 375 / 2, 230);
     ctx.fillText('解锁拼豆图鉴', 375 / 2, 260);
+
+    // 绘制用户登录状态
+    this.renderUserLoginStatus(ctx);
 
     // 绘制按钮
     this.drawButton(ctx, '开始游戏', this.btnAreas.startGame);
@@ -1662,6 +1725,13 @@ class GameInfo extends Emitter {
     console.log('collection area:', this.btnAreas.collection);
     console.log('leaderboard area:', this.btnAreas.leaderboard);
     
+    // 检查是否点击了登录按钮
+    if (this.isInArea(x, y, this.btnAreas.login)) {
+      console.log('login button clicked');
+      this.handleLogin();
+      return;
+    }
+    
     if (this.isInArea(x, y, this.btnAreas.startGame)) {
       console.log('startGame button clicked');
       this.emit('startGame');
@@ -1677,6 +1747,31 @@ class GameInfo extends Emitter {
     } else {
       console.log('No button clicked');
     }
+  }
+  
+  // 处理登录
+  handleLogin() {
+    const authManager = GameGlobal.authManager;
+    
+    if (!authManager) {
+      console.log('AuthManager not initialized');
+      return;
+    }
+    
+    if (authManager.isLoggedIn) {
+      // 已登录，显示用户信息
+      console.log('User already logged in:', authManager.userInfo);
+      return;
+    }
+    
+    // 未登录，执行登录
+    authManager.login().then((result) => {
+      console.log('Login successful:', result);
+      // 触发登录成功事件
+      this.emit('loginSuccess', result);
+    }).catch((error) => {
+      console.error('Login failed:', error);
+    });
   }
 
   // 处理游戏结束触摸
