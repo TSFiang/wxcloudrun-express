@@ -2,11 +2,15 @@
 if (typeof wx !== 'undefined' && typeof wx.createCanvas !== 'undefined') {
   // 微信小游戏环境使用require加载模块
   try {
-    // 加载必要的模块
+    // 加载必要的模块（按正确顺序）
     require('./js/libs/tinyemitter.js');
     require('./js/base/pool.js');
+    require('./js/runtime/logger.js');
+    require('./js/runtime/resourceloader.js');
+    require('./js/runtime/admanager.js');
     require('./js/render.js');
     require('./js/databus.js');
+    require('./js/feedback.js');
     require('./js/runtime/music.js');
     require('./js/runtime/gameinfo.js');
     require('./js/main.js');
