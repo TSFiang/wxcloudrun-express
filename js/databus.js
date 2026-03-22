@@ -487,16 +487,17 @@ class DataBus {
     return 'normal';
   }
 
-  // 获取当前难度参数（分段设计）
+  // 获取当前难度参数（分段设计：先慢后快）
   getCurrentDifficulty() {
     const difficultyStages = [
-      { score: 0,    speed: 1.0,   gap: 80,  moveProb: 0.2 },
-      { score: 50,   speed: 1.5,   gap: 90,  moveProb: 0.25 },
-      { score: 100,  speed: 2.0,   gap: 100, moveProb: 0.3 },
-      { score: 200,  speed: 2.5,   gap: 110, moveProb: 0.35 },
-      { score: 400,  speed: 3.0,   gap: 120, moveProb: 0.4 },
-      { score: 800,  speed: 3.5,   gap: 130, moveProb: 0.45 },
-      { score: 9999, speed: 4.0,   gap: 140, moveProb: 0.5 }  // 上限
+      { score: 0,    speed: 0.6,   gap: 70,  moveProb: 0.1 },   // 新手期：非常慢
+      { score: 30,   speed: 0.8,   gap: 75,  moveProb: 0.15 },  // 适应期：缓慢加速
+      { score: 80,   speed: 1.0,   gap: 85,  moveProb: 0.2 },   // 成长期：正常速度
+      { score: 150,  speed: 1.5,   gap: 95,  moveProb: 0.3 },   // 进阶期：开始加速
+      { score: 300,  speed: 2.2,   gap: 110, moveProb: 0.4 },   // 高手期：较快
+      { score: 500,  speed: 3.0,   gap: 125, moveProb: 0.5 },   // 大师期：很快
+      { score: 800,  speed: 4.0,   gap: 140, moveProb: 0.6 },   // 专家期：极快
+      { score: 9999, speed: 5.0,   gap: 150, moveProb: 0.7 }    // 上限：极限速度
     ];
     
     for (let i = difficultyStages.length - 1; i >= 0; i--) {
