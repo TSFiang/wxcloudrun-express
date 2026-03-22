@@ -762,11 +762,11 @@ class GameInfo extends Emitter {
     const collected = databus.collectedBeans;
     const maxCollected = databus.maxCollected;
     
-    // 绘制收集栏
+    // 绘制收集栏（上移，避免与道具栏重叠）
     const barWidth = 375 - 40;
-    const barHeight = 50;
+    const barHeight = 45;
     const barX = 20;
-    const barY = 667 - 100;
+    const barY = 667 - 120; // 上移到道具栏上方
     
     // 绘制栏背景
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
@@ -778,7 +778,7 @@ class GameInfo extends Emitter {
     ctx.strokeRect(barX, barY, barWidth, barHeight);
     
     // 绘制拼豆
-    const beanSize = 35;
+    const beanSize = 30;
     const spacing = (barWidth - beanSize * maxCollected) / (maxCollected + 1);
     
     for (let i = 0; i < maxCollected; i++) {
