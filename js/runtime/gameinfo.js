@@ -24,17 +24,30 @@ backgroundImage.src = 'images/image_695435480469248.png';
 const playerSpriteSheet = createImage();
 playerSpriteSheet.src = 'images/image_720350330364146.png';
 
-// 加载道具图片
-const itemImages = {
-  shield: createImage(),
-  rainbow: createImage(),
-  doubleScore: createImage(),
-  extraBean: createImage()
+// 加载道具图片（4个道具在同一张图片，2x2布局）
+const itemSpriteSheet = createImage();
+itemSpriteSheet.src = 'images/image_106693423325902.png';
+
+// 定义每个道具在精灵图中的位置（2x2布局）
+const itemFrames = {
+  shield: { x: 0, y: 0 },
+  rainbow: { x: 0.5, y: 0 },
+  doubleScore: { x: 0, y: 0.5 },
+  extraBean: { x: 0.5, y: 0.5 }
 };
-itemImages.shield.src = 'images/image_106693423325902.png';
-itemImages.rainbow.src = 'images/image_106693423325902.png'; // 暂时使用同一张，后续替换
-itemImages.doubleScore.src = 'images/image_106693423325902.png'; // 暂时使用同一张，后续替换
-itemImages.extraBean.src = 'images/image_106693423325902.png'; // 暂时使用同一张，后续替换
+
+// 加载木板平台图片（5个木板在同一张图片，纵向排列）
+const platformSpriteSheet = createImage();
+platformSpriteSheet.src = 'images/image_209397380965441.png';
+
+// 定义每个木板在精灵图中的位置（纵向排列，每个占20%高度）
+const platformFrames = {
+  normal: { x: 0, y: 0 },
+  moving: { x: 0, y: 0.2 },
+  bouncy: { x: 0, y: 0.4 },
+  disappearing: { x: 0, y: 0.6 },
+  danger: { x: 0, y: 0.8 }
+};
 
 // 云朵系统
 class CloudSystem {
@@ -531,6 +544,39 @@ class GameInfo extends Emitter {
       ctx.globalAlpha = Math.max(0, 1 - platform.disappearTimer / platform.disappearDelay);
     }
     
+    // 微信小游戏使用 width/height，浏览器使用 naturalWidth/naturalHeight
+    const sheetWidth = platformSpriteSheet.naturalWidth || platformSpriteSheet.width;
+    const sheetHeight = platformSpriteSheet.naturalHeight || platformSpriteSheet.height;
+    
+    // 尝试使用精灵图渲染
+    if (platformSpriteSheet && platformSpriteSheet.complete && sheetWidth > 0) {
+      const frame = platformFrames[platform.type] || platformFrames.normal;
+      
+      // 9参数drawImage: img, sx, sy, sw, sh, dx, dy, dw, dh
+      ctx.drawImage(
+        platformSpriteSheet,
+        frame.x * sheetWidth,
+        frame.y * sheetHeight,
+        sheetWidth,
+        sheetHeight * 0.2,
+        platform.x,
+        platform.y,
+        platform.size,
+        25
+      );
+    } else {
+      // 图片未加载时使用Canvas绘制作为后备
+      this.renderPlatformByCanvas(ctx, platform);
+    }
+    
+    // 重置透明度
+    if (platform.isDisappearing) {
+      ctx.globalAlpha = 1;
+    }
+  }
+  
+  // Canvas绘制后备方案
+  renderPlatformByCanvas(ctx, platform) {
     // 根据类型设置颜色
     let platformColor = platform.color;
     let borderColor = '#ffffff';
@@ -538,57 +584,44 @@ class GameInfo extends Emitter {
     
     switch (platform.type) {
       case 'normal':
-        // 普通平台：原色
         platformColor = platform.color;
         break;
         
       case 'moving':
-        // 移动平台：原色+移动提示
         platformColor = platform.color;
         specialEffect = true;
         break;
         
       case 'bouncy':
-        // 弹跳平台：绿色+弹簧效果
         platformColor = '#4CAF50';
         borderColor = '#81C784';
         specialEffect = true;
         break;
         
       case 'disappearing':
-        // 消失平台：灰色+裂纹效果
         platformColor = '#9E9E9E';
         borderColor = '#BDBDBD';
         specialEffect = true;
         break;
         
       case 'danger':
-        // 危险平台：红色+尖刺效果
         platformColor = '#F44336';
         borderColor = '#E53935';
         specialEffect = true;
         break;
     }
     
-    // 绘制平台主体
     ctx.fillStyle = platformColor;
     ctx.beginPath();
     ctx.rect(platform.x, platform.y, platform.size, 10);
     ctx.fill();
     
-    // 绘制边框
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = 2;
     ctx.strokeRect(platform.x, platform.y, platform.size, 10);
     
-    // 绘制特殊效果
     if (specialEffect) {
       this.renderPlatformSpecialEffect(ctx, platform);
-    }
-    
-    // 重置透明度
-    if (platform.isDisappearing) {
-      ctx.globalAlpha = 1;
     }
   }
   
@@ -918,14 +951,30 @@ class GameInfo extends Emitter {
     ctx.lineWidth = 2;
     ctx.strokeRect(area.startX, area.startY, buttonWidth, buttonHeight);
     
-    // 绘制道具图片
-    const img = itemImages[itemType];
-    if (img && img.complete && img.naturalWidth > 0) {
-      // 计算图片绘制尺寸（保持比例，居中显示）
+    // 绘制道具图片（从精灵图裁剪）
+    // 微信小游戏使用 width/height，浏览器使用 naturalWidth/naturalHeight
+    const sheetWidth = itemSpriteSheet.naturalWidth || itemSpriteSheet.width;
+    const sheetHeight = itemSpriteSheet.naturalHeight || itemSpriteSheet.height;
+    
+    if (itemSpriteSheet && itemSpriteSheet.complete && sheetWidth > 0) {
       const imgSize = Math.min(buttonWidth, buttonHeight) - 10;
       const imgX = area.startX + (buttonWidth - imgSize) / 2;
       const imgY = area.startY + (buttonHeight - imgSize) / 2 - 5;
-      ctx.drawImage(img, imgX, imgY, imgSize, imgSize);
+      
+      const frame = itemFrames[itemType];
+      
+      // 9参数drawImage: img, sx, sy, sw, sh, dx, dy, dw, dh
+      ctx.drawImage(
+        itemSpriteSheet,
+        frame.x * sheetWidth,
+        frame.y * sheetHeight,
+        sheetWidth * 0.5,
+        sheetHeight * 0.5,
+        imgX,
+        imgY,
+        imgSize,
+        imgSize
+      );
     } else {
       // 图片未加载时显示占位符
       ctx.font = 'bold 24px Arial';

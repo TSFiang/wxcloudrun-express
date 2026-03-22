@@ -416,23 +416,26 @@ class DataBus {
     
     // 生成后续平台（增加到12个，业界标准）
     for (let i = 1; i < 12; i++) {
+      // 为初始平台也添加随机类型
+      const platformType = i < 3 ? 'normal' : this.getRandomPlatformType();
+      
       const platform = {
         x: mountainPlatform.x + mountainPlatform.size + (i - 1) * (this.basePlatformSize + this.basePlatformGap),
         y: startY + (Math.random() - 0.5) * 3, // 限制初始平台高度波动为±1.5像素
         size: this.basePlatformSize,
         color: this.getRandomColor(),
-        type: 'normal', // 初始平台都是普通类型
-        isMoving: false, // 初始平台不移动
+        type: platformType,
+        isMoving: platformType === 'moving',
         moveDirection: Math.random() > 0.5 ? 1 : -1,
         pulseAlpha: 0.5,
         
         // 新增平台特殊属性
-        bounceMultiplier: 1,
-        disappearDelay: 0,
+        bounceMultiplier: platformType === 'bouncy' ? 1.5 : 1,
+        disappearDelay: platformType === 'disappearing' ? 3000 : 0,
         disappearTimer: 0,
         isDisappearing: false,
-        isDanger: false,
-        damage: 0
+        isDanger: platformType === 'danger',
+        damage: platformType === 'danger' ? 1 : 0
       };
       this.platforms.push(platform);
     }
@@ -461,54 +464,54 @@ class DataBus {
   // 获取随机平台类型（扩展到5种类型）
   getRandomPlatformType() {
     // 根据分数阶段调整平台类型概率
-    const difficultyLevel = Math.floor(this.score / 100);
+    const difficultyLevel = Math.floor(this.score / 80); // 调整难度提升速度
     
     let probabilities;
     
     if (difficultyLevel === 0) {
-      // 初期（0-50分）：教学期，更多静态平台
+      // 初期（0-80分）：教学期，更多静态平台，但增加特殊平台
       probabilities = {
-        normal: 0.6,      // 60% 静态平台
-        moving: 0.2,      // 20% 移动平台
-        bouncy: 0.1,      // 10% 弹跳平台
-        disappearing: 0.05, // 5% 消失平台
-        danger: 0.05      // 5% 危险平台
+        normal: 0.4,      // 40% 静态平台
+        moving: 0.25,     // 25% 移动平台
+        bouncy: 0.15,     // 15% 弹跳平台
+        disappearing: 0.1, // 10% 消失平台
+        danger: 0.1       // 10% 危险平台
       };
     } else if (difficultyLevel === 1) {
-      // 中期（50-100分）：适应期
-      probabilities = {
-        normal: 0.5,      // 50%
-        moving: 0.25,     // 25%
-        bouncy: 0.12,     // 12%
-        disappearing: 0.08, // 8%
-        danger: 0.05      // 5%
-      };
-    } else if (difficultyLevel === 2) {
-      // 后期（100-200分）：标准期
-      probabilities = {
-        normal: 0.45,     // 45%
-        moving: 0.25,     // 25%
-        bouncy: 0.12,     // 12%
-        disappearing: 0.08, // 8%
-        danger: 0.1       // 10%
-      };
-    } else if (difficultyLevel === 3) {
-      // 挑战期（200-400分）
-      probabilities = {
-        normal: 0.4,      // 40%
-        moving: 0.25,     // 25%
-        bouncy: 0.15,     // 15%
-        disappearing: 0.1, // 10%
-        danger: 0.1       // 10%
-      };
-    } else {
-      // 专家期（400+分）
+      // 中期（80-160分）：适应期
       probabilities = {
         normal: 0.35,     // 35%
         moving: 0.25,     // 25%
         bouncy: 0.15,     // 15%
-        disappearing: 0.12, // 12%
-        danger: 0.13      // 13%
+        disappearing: 0.15, // 15%
+        danger: 0.1       // 10%
+      };
+    } else if (difficultyLevel === 2) {
+      // 后期（160-240分）：标准期
+      probabilities = {
+        normal: 0.3,      // 30%
+        moving: 0.25,     // 25%
+        bouncy: 0.2,      // 20%
+        disappearing: 0.15, // 15%
+        danger: 0.1       // 10%
+      };
+    } else if (difficultyLevel === 3) {
+      // 挑战期（240-400分）
+      probabilities = {
+        normal: 0.25,     // 25%
+        moving: 0.25,     // 25%
+        bouncy: 0.2,      // 20%
+        disappearing: 0.15, // 15%
+        danger: 0.15      // 15%
+      };
+    } else {
+      // 专家期（400+分）
+      probabilities = {
+        normal: 0.2,      // 20%
+        moving: 0.25,     // 25%
+        bouncy: 0.2,      // 20%
+        disappearing: 0.2, // 20%
+        danger: 0.15      // 15%
       };
     }
     
