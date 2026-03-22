@@ -1089,25 +1089,48 @@ class GameInfo extends Emitter {
       GameGlobal.musicManager.onUserInteract();
     }
     
-    let { clientX, clientY } = event.touches[0];
+    let clientX, clientY;
     
-    console.log('Raw touch - clientX:', clientX, 'clientY:', clientY);
-    console.log('Canvas scale:', window.canvasScale);
-    
-    // 转换坐标到canvas内部坐标
-    // 1. 先减去canvas的偏移量
-    // 2. 再除以缩放比例
-    if (window.canvasScale) {
-      // 获取canvas的偏移量
-      const canvasRect = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : null;
-      const offsetX = canvasRect ? canvasRect.left : (window.canvasOffsetLeft || 0);
-      const offsetY = canvasRect ? canvasRect.top : (window.canvasOffsetTop || 0);
+    // 微信小游戏环境和浏览器环境处理方式不同
+    if (window.isWechatGame) {
+      // 微信小游戏环境：canvas是全屏的，触摸坐标需要缩放到设计稿尺寸
+      const touch = event.touches[0];
+      clientX = touch.clientX;
+      clientY = touch.clientY;
       
-      console.log('Canvas offset - offsetX:', offsetX, 'offsetY:', offsetY);
+      console.log('微信小游戏 Raw touch - clientX:', clientX, 'clientY:', clientY);
       
-      clientX = (clientX - offsetX) / window.canvasScale;
-      clientY = (clientY - offsetY) / window.canvasScale;
-      console.log('Converted touch - clientX:', clientX, 'clientY:', clientY);
+      // 获取屏幕信息
+      const screenWidth = window.screenWidth || 375;
+      const screenHeight = window.screenHeight || 667;
+      
+      // 计算缩放比例
+      const scaleX = 375 / screenWidth;
+      const scaleY = 667 / screenHeight;
+      
+      // 转换坐标到设计稿尺寸
+      clientX = clientX * scaleX;
+      clientY = clientY * scaleY;
+      
+      console.log('微信小游戏 Converted - clientX:', clientX, 'clientY:', clientY);
+    } else {
+      // 浏览器环境
+      let { clientX: x, clientY: y } = event.touches[0];
+      clientX = x;
+      clientY = y;
+      
+      console.log('浏览器 Raw touch - clientX:', clientX, 'clientY:', clientY);
+      
+      // 转换坐标到canvas内部坐标
+      if (window.canvasScale) {
+        const canvasRect = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : null;
+        const offsetX = canvasRect ? canvasRect.left : (window.canvasOffsetLeft || 0);
+        const offsetY = canvasRect ? canvasRect.top : (window.canvasOffsetTop || 0);
+        
+        clientX = (clientX - offsetX) / window.canvasScale;
+        clientY = (clientY - offsetY) / window.canvasScale;
+        console.log('浏览器 Converted - clientX:', clientX, 'clientY:', clientY);
+      }
     }
     
     const gameState = GameGlobal.databus.gameState;

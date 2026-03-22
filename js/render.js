@@ -20,10 +20,34 @@ if (window.isWechatGame) {
   canvas = GameGlobal.canvas;
   
   const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+  const screenWidth = windowInfo.windowWidth || windowInfo.screenWidth;
+  const screenHeight = windowInfo.windowHeight || windowInfo.screenHeight;
   
   // 设置canvas大小为设计稿尺寸
   canvas.width = SCREEN_WIDTH;
   canvas.height = SCREEN_HEIGHT;
+  
+  // 计算缩放比例和偏移量
+  const scaleX = screenWidth / SCREEN_WIDTH;
+  const scaleY = screenHeight / SCREEN_HEIGHT;
+  const scale = Math.min(scaleX, scaleY);
+  
+  // 保存到全局变量
+  window.canvasScale = scale;
+  window.canvasOffsetLeft = (screenWidth - SCREEN_WIDTH * scale) / 2;
+  window.canvasOffsetTop = (screenHeight - SCREEN_HEIGHT * scale) / 2;
+  window.screenWidth = screenWidth;
+  window.screenHeight = screenHeight;
+  
+  GameGlobal.canvasScale = scale;
+  GameGlobal.canvasOffsetLeft = window.canvasOffsetLeft;
+  GameGlobal.canvasOffsetTop = window.canvasOffsetTop;
+  
+  console.log('微信小游戏 Canvas 初始化');
+  console.log('屏幕尺寸:', screenWidth, 'x', screenHeight);
+  console.log('Canvas尺寸:', SCREEN_WIDTH, 'x', SCREEN_HEIGHT);
+  console.log('缩放比例:', scale);
+  console.log('偏移量:', window.canvasOffsetLeft, window.canvasOffsetTop);
 } else {
   // 浏览器环境 - 延迟初始化，等待DOM加载完成
   window.addEventListener('DOMContentLoaded', function() {
