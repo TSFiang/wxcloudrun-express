@@ -8,7 +8,7 @@ let databusInstance;
  * const databus = new DataBus();
  * databus.startGame();
  */
-class DataBus {
+class DataBus extends TinyEmitter {
   /** @type {string} 当前游戏状态 */
   gameState = 'menu';
   
@@ -181,6 +181,7 @@ class DataBus {
   pool = new Pool();
 
   constructor() {
+    super(); // 初始化TinyEmitter
     if (databusInstance) return databusInstance;
     databusInstance = this;
   }
