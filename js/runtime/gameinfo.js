@@ -1545,6 +1545,12 @@ class GameInfo extends Emitter {
       case 'settings':
         this.handleSettingsTouch(clientX, clientY);
         break;
+      case 'collection':
+        this.handleCollectionTouch(clientX, clientY);
+        break;
+      case 'achievement':
+        this.handleAchievementTouch(clientX, clientY);
+        break;
     }
   }
   
@@ -1624,6 +1630,22 @@ class GameInfo extends Emitter {
     if (!clicked) {
       console.log('No option clicked');
     }
+  }
+  
+  // 处理成就界面触摸
+  handleAchievementTouch(x, y) {
+    const databus = GameGlobal.databus;
+    
+    console.log('Achievement touch - x:', x, 'y:', y);
+    
+    // 检查是否点击了返回按钮
+    if (this.isInArea(x, y, this.btnAreas.backToMenu)) {
+      console.log('Clicked back button from achievement');
+      databus.gameState = 'menu';
+      return;
+    }
+    
+    console.log('No button clicked in achievement');
   }
   
   // 处理教程触摸

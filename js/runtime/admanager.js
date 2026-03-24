@@ -162,15 +162,27 @@ class AdManager {
       return false;
     }
     
-    if (this.isBannerShowing) {
+    // 如果Banner广告已存在且正在显示，直接返回
+    if (this.bannerAd && this.isBannerShowing) {
       console.log('[AdManager] Banner广告已在显示中');
       return true;
     }
     
+    // 如果Banner广告已存在但未显示，尝试重新显示
+    if (this.bannerAd && !this.isBannerShowing) {
+      this.bannerAd.show().then(() => {
+        this.isBannerShowing = true;
+        console.log('[AdManager] Banner广告重新显示成功');
+      }).catch(err => {
+        console.error('[AdManager] Banner广告重新显示失败:', err);
+        // 显示失败，销毁旧广告，创建新的
+        this.bannerAd = null;
+        this.showBannerAd(width, top);
+      });
+      return true;
+    }
+    
     try {
-      // 先销毁旧的Banner广告
-      this.hideBannerAd();
-      
       // 创建新的Banner广告
       this.bannerAd = wx.createBannerAd({
         adUnitId: this.adUnitIds.banner,
@@ -182,12 +194,23 @@ class AdManager {
       
       this.bannerAd.onResize((size) => {
         // 居中显示
-        const systemInfo = wx.getSystemInfoSync();
-        this.bannerAd.style.left = (systemInfo.windowWidth - size.width) / 2;
+        try {
+          const systemInfo = wx.getSystemInfoSync();
+          if (this.bannerAd) {
+            this.bannerAd.style.left = (systemInfo.windowWidth - size.width) / 2;
+          }
+        } catch (err) {
+          console.error('[AdManager] 调整Banner广告位置失败:', err);
+        }
       });
       
       this.bannerAd.onError((err) => {
         console.error('[AdManager] Banner广告错误:', err);
+        // 忽略特定的内部错误
+        if (err.errMsg && err.errMsg.includes('not found')) {
+          console.log('[AdManager] 忽略内部错误:', err.errMsg);
+          return;
+        }
         this.isBannerShowing = false;
       });
       
@@ -212,12 +235,29 @@ class AdManager {
   hideBannerAd() {
     if (this.bannerAd) {
       try {
-        this.bannerAd.destroy();
-        this.bannerAd = null;
-        this.isBannerShowing = false;
-        console.log('[AdManager] Banner广告已隐藏');
+        // 先移除事件监听器，避免触发错误
+        this.bannerAd.offResize();
+        this.bannerAd.offError();
+        
+        // 延迟销毁，避免立即销毁导致的错误
+        setTimeout(() => {
+          try {
+            if (this.bannerAd) {
+              this.bannerAd.destroy();
+              this.bannerAd = null;
+              this.isBannerShowing = false;
+              console.log('[AdManager] Banner广告已隐藏');
+            }
+          } catch (err) {
+            console.error('[AdManager] 销毁Banner广告失败:', err);
+            this.bannerAd = null;
+            this.isBannerShowing = false;
+          }
+        }, 100);
       } catch (err) {
         console.error('[AdManager] 销毁Banner广告失败:', err);
+        this.bannerAd = null;
+        this.isBannerShowing = false;
       }
     }
   }
