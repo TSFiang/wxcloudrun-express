@@ -1,52 +1,85 @@
-const __ = {
-  poolDic: Symbol('poolDic'),
-};
-
 /**
- * 简易的对象池实现
- * 用于对象的存贮和重复使用
- * 可以有效减少对象创建开销和避免频繁的垃圾回收
- * 提高游戏性能
+ * 对象池实现
+ * 用于平台、粒子等高频创建/销毁对象，减少 GC 压力
  */
 class Pool {
   constructor() {
-    this[__.poolDic] = {};
+    this._pools = {};
   }
 
   /**
-   * 根据对象标识符
-   * 获取对应的对象池
+   * 获取指定类型的对象池数组
    */
-  getPoolBySign(name) {
-    return this[__.poolDic][name] || (this[__.poolDic][name] = []);
+  _getPool(name) {
+    if (!this._pools[name]) {
+      this._pools[name] = [];
+    }
+    return this._pools[name];
   }
 
   /**
-   * 根据传入的对象标识符，查询对象池
-   * 对象池为空创建新的类，否则从对象池中取
+   * 从池中取一个对象，池空则用工厂函数创建
+   * @param {string} name - 池名称
+   * @param {Function} factory - 工厂函数（池空时调用）
+   * @returns {Object}
    */
-  getItemByClass(name, className) {
-    const pool = this.getPoolBySign(name);
-
-    const result = pool.length ? pool.shift() : new className();
-
-    return result;
+  get(name, factory) {
+    const pool = this._getPool(name);
+    if (pool.length > 0) {
+      return pool.pop();
+    }
+    return factory();
   }
 
   /**
-   * 将对象回收到对象池
-   * 方便后续继续使用
+   * 将对象回收到池中
+   * @param {string} name - 池名称
+   * @param {Object} obj - 要回收的对象
+   * @param {Function} [reset] - 重置函数（可选）
    */
-  recover(name, instance) {
-    this.getPoolBySign(name).push(instance);
+  put(name, obj, reset) {
+    if (reset) reset(obj);
+    this._getPool(name).push(obj);
+  }
+
+  /**
+   * 批量回收数组中的对象
+   * @param {string} name - 池名称
+   * @param {Array} arr - 对象数组
+   * @param {Function} [reset] - 重置函数
+   */
+  putAll(name, arr, reset) {
+    const pool = this._getPool(name);
+    for (let i = 0; i < arr.length; i++) {
+      if (reset) reset(arr[i]);
+      pool.push(arr[i]);
+    }
+    arr.length = 0;
+  }
+
+  /**
+   * 获取池中可用对象数量
+   */
+  size(name) {
+    return this._getPool(name).length;
+  }
+
+  /**
+   * 清空指定类型的池
+   */
+  clear(name) {
+    if (name) {
+      delete this._pools[name];
+    } else {
+      this._pools = {};
+    }
   }
 }
 
-// 将Pool类挂载到全局对象
+// 全局单例
 if (typeof window !== 'undefined') {
   window.Pool = Pool;
 }
-
 if (typeof GameGlobal !== 'undefined') {
   GameGlobal.Pool = Pool;
 }

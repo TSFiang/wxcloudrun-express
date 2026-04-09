@@ -1,10 +1,11 @@
 // 微信小游戏环境
 if (typeof wx !== 'undefined' && typeof wx.createCanvas !== 'undefined') {
-  // 微信小游戏环境使用require加载模块
   try {
-    // 加载必要的模块（按正确顺序）
+    // 按正确顺序加载模块
+    require('./js/utils.js');
     require('./js/libs/tinyemitter.js');
     require('./js/base/pool.js');
+    require('./js/base/sprite.js');
     require('./js/runtime/logger.js');
     require('./js/runtime/resourceloader.js');
     require('./js/runtime/admanager.js');
@@ -14,13 +15,8 @@ if (typeof wx !== 'undefined' && typeof wx.createCanvas !== 'undefined') {
     require('./js/runtime/music.js');
     require('./js/runtime/gameinfo.js');
     require('./js/main.js');
-    
-    // 确保GameGlobal存在
-    if (typeof GameGlobal === 'undefined') {
-      GameGlobal = {};
-    }
-    
-    // 创建Main实例
+
+    if (typeof GameGlobal === 'undefined') GameGlobal = {};
     if (typeof Main !== 'undefined') {
       new Main();
     } else {
@@ -34,9 +30,6 @@ if (typeof wx !== 'undefined' && typeof wx.createCanvas !== 'undefined') {
   if (typeof Main !== 'undefined') {
     new Main();
   } else {
-    // 如果Main类还未加载，等待一下再尝试
-    setTimeout(() => {
-      new Main();
-    }, 100);
+    setTimeout(() => new Main(), 100);
   }
 }
