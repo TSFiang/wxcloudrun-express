@@ -1,22 +1,17 @@
-const express = require('express');
-const path = require('path');
-const app = express();
+const { createApp } = require('./app');
 
-// 静态文件服务
-app.use(express.static(path.join(__dirname, '.')));
+function startServer({ port = process.env.PORT || 80, app = createApp() } = {}) {
+  const server = app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+  return server;
+}
 
-// 健康检查
-app.get('/health', (req, res) => {
-  res.status(200).send('OK');
-});
+if (require.main === module) {
+  startServer();
+}
 
-// 处理根路径，重定向到 game.html
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'game.html'));
-});
-
-// 启动服务器
-const PORT = process.env.PORT || 80;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = {
+  startServer,
+  createApp,
+};
