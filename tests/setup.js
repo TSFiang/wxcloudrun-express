@@ -1,3 +1,8 @@
+/**
+ * 测试环境全局 Mock
+ * 模拟浏览器/微信小游戏 API
+ */
+
 const mockCtx = {
   fillStyle: '', strokeStyle: '', font: '', textAlign: '', textBaseline: '',
   globalAlpha: 1, lineWidth: 1,
@@ -14,13 +19,13 @@ const mockCtx = {
 };
 
 const mockCanvas = {
-  width: 375, height: 667,
+  width: 375,
+  height: 667,
   getContext: jest.fn(() => mockCtx),
   getBoundingClientRect: jest.fn(() => ({ left: 0, top: 0, width: 375, height: 667 })),
   style: {},
 };
 
-// ★ 关键：全局 canvas
 global.canvas = mockCanvas;
 
 let _dateNow = 1700000000000;
@@ -39,11 +44,43 @@ let _rafId = 0;
 global.requestAnimationFrame = jest.fn(() => { _rafId++; return _rafId; });
 global.cancelAnimationFrame = jest.fn();
 
-// 同步到 window
+global.setInterval = jest.fn(() => 1);
+global.clearInterval = jest.fn();
+global.setTimeout = jest.fn((cb) => { return typeof cb === 'function' ? 1 : 1; });
 
-// window mock
+global.Image = class {
+  constructor() {
+    this.src = '';
+    this.complete = false;
+    this.width = 0;
+    this.height = 0;
+  }
+};
+
+global.Audio = class {
+  constructor() {
+    this.src = '';
+    this.loop = false;
+    this.autoplay = false;
+    this.volume = 1;
+    this.paused = true;
+    this.currentTime = 0;
+  }
+  play() {
+    this.paused = false;
+    return Promise.resolve();
+  }
+  pause() {
+    this.paused = true;
+  }
+};
+
 global.window = {
   canvas: mockCanvas,
+  canvasScale: 1,
+  canvasOffsetLeft: 0,
+  canvasOffsetTop: 0,
+  isWechatGame: false,
   requestAnimationFrame: global.requestAnimationFrame,
   cancelAnimationFrame: global.cancelAnimationFrame,
   performance: global.performance,
@@ -52,11 +89,13 @@ global.window = {
   addEventListener: jest.fn(),
   innerWidth: 375,
   innerHeight: 667,
+  Image: global.Image,
+  Audio: global.Audio,
 };
 
 global.document = {
   getElementById: jest.fn(() => mockCanvas),
-  createElement: jest.fn(() => ({ style: {} })),
+  createElement: jest.fn((tag) => ({ className: '', innerHTML: '', style: {}, tagName: tag })),
   body: { appendChild: jest.fn() },
 };
 
