@@ -6,30 +6,13 @@
   "scripts": {
     "start": "node index.js",
     "test": "jest",
-    "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "express": "^4.17.1"
   },
-  "engines": {
-    "node": "14.x"
-  },
-  "directories": {
-    "doc": "docs"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/TSFiang/wxcloudrun-express.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/TSFiang/wxcloudrun-express/issues"
-  },
-  "homepage": "https://github.com/TSFiang/wxcloudrun-express#readme",
   "devDependencies": {
-    "jest": "^30.3.0"
+    "jest": "^30.3.0",
+    "supertest": "^6.3.3"
   }
 }
