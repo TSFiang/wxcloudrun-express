@@ -23,6 +23,9 @@ const mockCanvas = {
   width: 375, height: 667,
   getContext: jest.fn(() => mockCtx),
   getBoundingClientRect: jest.fn(() => ({ left: 0, top: 0, width: 375, height: 667 })),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  dispatchEvent: jest.fn(),
   style: {},
 };
 
