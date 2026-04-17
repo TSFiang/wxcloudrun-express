@@ -41,7 +41,6 @@ function loadAllModules() {
   require(path.join(JS_DIR, 'runtime', 'gameinfo.js'));
   bridge(['GameInfo']);
 
-  // ★ 关键修复：加载 main.js
   require(path.join(JS_DIR, 'main.js'));
   bridge(['Main']);
 
@@ -68,16 +67,34 @@ function resetGame() {
     fm.hitStopTimer = 0;
     fm.timeScale = 1;
   }
-
-  // 重置 Main 实例，避免状态污染
   if (global.GameGlobal) {
     global.GameGlobal.main = null;
   }
+}
+
+function createMockPlatform(overrides = {}) {
+  return {
+    x: 100, y: 350, size: 80, color: '#FF6B6B', type: 'normal',
+    isMoving: false, moveDirection: 1, pulseAlpha: 0.5,
+    bounceMultiplier: 1, disappearDelay: 0, disappearTimer: 0,
+    isDisappearing: false, isDanger: false, damage: 0,
+    ...overrides,
+  };
+}
+
+function createMockPlayer(overrides = {}) {
+  return {
+    x: 50, y: 270, size: 30, velocityY: 0, velocityX: 0,
+    isJumping: false, power: 0, maxPower: 100,
+    state: 'stand', currentPlatform: null,
+    ...overrides,
+  };
 }
 
 const { mockCtx, mockCanvas } = require('./setup');
 
 module.exports = {
   loadAllModules, resetLoaded, resetGame,
+  createMockPlatform, createMockPlayer,
   mockCtx, mockCanvas,
 };
