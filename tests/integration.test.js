@@ -33,8 +33,8 @@ describe('完整游戏流程', () => {
     // 4. 模拟落地（手动设置到第二个平台上方）
     const target = db.platforms[1];
     db.player.x = target.x + target.size / 2 - 15;
-    db.player.y = target.y - 30;
-    db.player.velocityY = 5; // 向下
+    db.player.y = target.y - 35; // 给一帧重力/下落留出空间
+    db.player.velocityY = 4; // 向下
 
     // 运行碰撞检测
     db.updatePlayer(1/60);
@@ -129,6 +129,8 @@ describe('完整游戏流程', () => {
   test('游戏结束 → 看广告复活 → 继续游戏', () => {
     const db = GameGlobal.databus;
     db.startGame();
+    db.gameStartTime = Date.now() - 1000;
+    db.isGameStarted = true;
     db.score = 42;
 
     // 模拟游戏结束（无护盾）
@@ -164,16 +166,17 @@ describe('完整游戏流程', () => {
     db.gameStartTime = Date.now() - 1000;
     db.isGameStarted = true;
 
-    // 玩家站在一个平台上
+    // 只保留一个平台，避免重新落到其他平台上
     const plat = db.platforms[1];
+    db.platforms = [plat];
     db.player.x = plat.x + 20;
     db.player.y = plat.y - 30;
     db.player.isJumping = false;
     db.player.currentPlatform = plat;
 
-    // 平台向左移动远离玩家
+    // 平台远离玩家
     db.player.x = 50;
-    plat.x = 300; // 平台远离
+    plat.x = 300;
 
     db.updatePlayer(1/60);
 

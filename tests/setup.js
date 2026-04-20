@@ -3,7 +3,6 @@
  * 模拟浏览器/微信小游戏 API
  */
 
-// ─── Canvas Mock ──────────────────────────────────
 const mockCtx = {
   fillStyle: '', strokeStyle: '', font: '', textAlign: '', textBaseline: '',
   globalAlpha: 1, lineWidth: 1,
@@ -20,7 +19,8 @@ const mockCtx = {
 };
 
 const mockCanvas = {
-  width: 375, height: 667,
+  width: 375,
+  height: 667,
   getContext: jest.fn(() => mockCtx),
   getBoundingClientRect: jest.fn(() => ({ left: 0, top: 0, width: 375, height: 667 })),
   addEventListener: jest.fn(),
@@ -29,7 +29,8 @@ const mockCanvas = {
   style: {},
 };
 
-// ─── Date.now 控制 ───────────────────────────────
+global.canvas = mockCanvas;
+
 let _dateNow = 1700000000000;
 const origDateNow = Date.now;
 Date.now = jest.fn(() => _dateNow);
@@ -37,28 +38,28 @@ global._setDateNow = (v) => { _dateNow = v; };
 global._advanceDateNow = (ms) => { _dateNow += ms; };
 global._restoreDateNow = () => { Date.now = origDateNow; };
 
-// ─── performance.now ─────────────────────────────
 let _perfNow = 0;
 global.performance = { now: jest.fn(() => _perfNow) };
 global._advancePerf = (ms) => { _perfNow += ms; };
 global._resetPerf = () => { _perfNow = 0; };
 
-// ─── requestAnimationFrame ───────────────────────
 let _rafId = 0;
 global.requestAnimationFrame = jest.fn(() => { _rafId++; return _rafId; });
 global.cancelAnimationFrame = jest.fn();
 
-// ─── setInterval / setTimeout ────────────────────
 global.setInterval = jest.fn(() => 1);
 global.clearInterval = jest.fn();
-global.setTimeout = jest.fn((cb, ms) => { return 1; });
+global.setTimeout = jest.fn((cb) => { return typeof cb === 'function' ? 1 : 1; });
 
-// ─── Image 全局构造函数 ──────────────────────────
 global.Image = class {
-  constructor() { this.src = ''; this.complete = false; this.width = 0; this.height = 0; }
+  constructor() {
+    this.src = '';
+    this.complete = false;
+    this.width = 0;
+    this.height = 0;
+  }
 };
 
-// ─── Audio 全局构造函数 ──────────────────────────
 global.Audio = class {
   constructor() {
     this.src = '';
@@ -68,34 +69,39 @@ global.Audio = class {
     this.paused = true;
     this.currentTime = 0;
   }
-  play() { this.paused = false; return Promise.resolve(); }
-  pause() { this.paused = true; }
+  play() {
+    this.paused = false;
+    return Promise.resolve();
+  }
+  pause() {
+    this.paused = true;
+  }
 };
 
-// ─── window 对象 ─────────────────────────────────
 global.window = {
   canvas: mockCanvas,
   canvasScale: 1,
   canvasOffsetLeft: 0,
   canvasOffsetTop: 0,
   isWechatGame: false,
+  requestAnimationFrame: global.requestAnimationFrame,
+  cancelAnimationFrame: global.cancelAnimationFrame,
+  performance: global.performance,
   SCREEN_WIDTH: 375,
   SCREEN_HEIGHT: 667,
   addEventListener: jest.fn(),
   innerWidth: 375,
   innerHeight: 667,
-  Image: class { constructor() { this.src = ''; this.complete = false; this.width = 0; this.height = 0; } },
+  Image: global.Image,
+  Audio: global.Audio,
 };
 
-// ─── document 对象 ───────────────────────────────
 global.document = {
   getElementById: jest.fn(() => mockCanvas),
-  createElement: jest.fn((tag) => ({ className: '', innerHTML: '', style: {} })),
+  createElement: jest.fn((tag) => ({ className: '', innerHTML: '', style: {}, tagName: tag })),
   body: { appendChild: jest.fn() },
 };
 
-// ─── GameGlobal 对象 ─────────────────────────────
 global.GameGlobal = { canvas: mockCanvas, SCREEN_WIDTH: 375, SCREEN_HEIGHT: 667 };
 
-// ─── 导出 ────────────────────────────────────────
 module.exports = { mockCtx, mockCanvas };

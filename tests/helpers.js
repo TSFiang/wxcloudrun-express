@@ -1,16 +1,8 @@
-/**
- * 测试辅助工具
- * 直接 require() 游戏源码，然后桥接到 global
- */
-
 const path = require('path');
 const JS_DIR = path.join(__dirname, '..', 'js');
 
 let _loaded = false;
 
-/**
- * 桥接 window 上的属性到 global（让 Node.js 中可直接用裸名访问）
- */
 function bridge(names) {
   for (const name of names) {
     if (window[name] !== undefined && global[name] === undefined) {
@@ -23,24 +15,20 @@ function loadAllModules() {
   if (_loaded) return;
   _loaded = true;
 
-  // 基础工具
   require(path.join(JS_DIR, 'utils.js'));
   bridge(['SCREEN_WIDTH', 'SCREEN_HEIGHT', 'BEAN_COLORS', 'MACARON_COLORS',
     'createImage', 'fillRoundRect', 'strokeRoundRect', 'drawRoundRect',
     'eventToCanvas', 'isInArea', 'capsulePlatformCollision']);
 
-  // 第三方库
   require(path.join(JS_DIR, 'libs', 'tinyemitter.js'));
   bridge(['TinyEmitter']);
 
-  // 基础类
   require(path.join(JS_DIR, 'base', 'pool.js'));
   bridge(['Pool']);
 
   require(path.join(JS_DIR, 'base', 'sprite.js'));
   bridge(['Sprite']);
 
-  // 核心模块
   require(path.join(JS_DIR, 'databus.js'));
   bridge(['DataBus']);
 
@@ -53,7 +41,9 @@ function loadAllModules() {
   require(path.join(JS_DIR, 'runtime', 'gameinfo.js'));
   bridge(['GameInfo']);
 
-  // 手动创建核心全局对象
+  require(path.join(JS_DIR, 'main.js'));
+  bridge(['Main']);
+
   GameGlobal.musicManager = new Music();
   GameGlobal.databus = new DataBus();
   GameGlobal.feedbackManager = new FeedbackManager();
@@ -76,6 +66,9 @@ function resetGame() {
     fm.screenShake = { intensity: 0, duration: 0, startTime: 0, offset: { x: 0, y: 0 } };
     fm.hitStopTimer = 0;
     fm.timeScale = 1;
+  }
+  if (global.GameGlobal) {
+    global.GameGlobal.main = null;
   }
 }
 

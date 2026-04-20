@@ -237,6 +237,8 @@ describe('GameInfo 触摸处理', () => {
   test('游戏中点击道具触发使用', () => {
     const gi = GameGlobal.gameInfo || new GameInfo();
     GameGlobal.databus.gameState = 'playing';
+    GameGlobal.databus.isFirstPlay = false;
+    GameGlobal.databus.settings.showTutorial = false;
     GameGlobal.databus.items.shield = 3;
 
     gi._handleStart(55, 627); // shield 按钮中心
@@ -248,6 +250,8 @@ describe('GameInfo 触摸处理', () => {
   test('游戏中空白区域开始蓄力', () => {
     const gi = GameGlobal.gameInfo || new GameInfo();
     GameGlobal.databus.gameState = 'playing';
+    GameGlobal.databus.isFirstPlay = false;
+    GameGlobal.databus.settings.showTutorial = false;
 
     gi._handleStart(187, 300); // 屏幕中央，不在按钮区域
 
