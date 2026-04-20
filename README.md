@@ -170,6 +170,5 @@ python3 -m http.server 8080
 
 ## 许可证
 <a href="https://deepwiki.com/TSFiang/wxcloudrun-express"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/TSFiang/wxcloudrun-express)
 
 MIT License
